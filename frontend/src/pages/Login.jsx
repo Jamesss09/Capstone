@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { User, Lock, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import logo from '../assets/logo.png' // TMC logo (Prototype/logo/Logo.png)
+import logo from '../assets/logo.png' // TMC seal (Prototype/logo/Logo.png)
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
   const [credentials, setCredentials] = useState({ login: '', password: '' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -34,30 +37,35 @@ export default function Login() {
     }
   }
 
+  // Shared style for both inputs (beige background from prototype #F4F2EA)
+  const inputClass =
+    'w-full rounded-lg bg-[#F4F2EA] border border-slate-300 pl-10 py-2.5 pr-4 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA] focus:border-transparent'
+
   return (
-    // Page background matches prototype (#F1F2F4)
-    <div className="min-h-screen flex items-center justify-center bg-[#F1F2F4] px-4">
-      {/* White card, matches prototype span (~450px) */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F1F2F4] px-4">
+      {/* White card login form */}
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white rounded-2xl shadow-lg px-8 py-8 flex flex-col gap-5"
       >
-        {/* TMC Logo */}
+        {/* Centered logo top — TMC seal */}
         <div className="flex justify-center">
           <img
             src={logo}
-            alt="Trinidad Municipal College logo"
+            alt="Trinidad Municipal College seal"
             className="w-24 h-24 object-contain"
           />
         </div>
 
-        {/* Title + subtitle per prototype */}
+        {/* Title + subtitle */}
         <div className="text-center">
           <h1 className="text-xl font-bold text-[#348BDA] leading-snug">
-            TMC Entrance Examination: Answer Sheet Recognition and Scoring System
+            TMC Entrance Exam
+            <br />
+            Scoring System
           </h1>
           <p className="mt-1 text-sm text-[#6B6E76]">
-            Sign in to access the examination management system
+            Sign in to access the examination management system.
           </p>
         </div>
 
@@ -67,61 +75,91 @@ export default function Login() {
           </div>
         )}
 
-        {/* Username field */}
+        {/* Username field — user icon inside, beige background */}
         <div>
           <label className="block text-sm font-medium text-[#6B6E76] mb-1.5">
             Username
           </label>
-          <input
-            type="text"
-            name="login"
-            value={credentials.login}
-            onChange={handleChange}
-            required
-            autoFocus
-            placeholder="Enter your username"
-            className="w-full rounded-lg bg-[#F4F2EA] border border-slate-300 px-3 py-2.5 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA] focus:border-transparent"
-          />
+          <div className="relative">
+            <User
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              name="login"
+              value={credentials.login}
+              onChange={handleChange}
+              required
+              autoFocus
+              placeholder="Enter your username"
+              className={inputClass}
+            />
+          </div>
         </div>
 
-        {/* Password field */}
+        {/* Password field — lock icon + eye toggle */}
         <div>
           <label className="block text-sm font-medium text-[#6B6E76] mb-1.5">
             Password
           </label>
-          <input
-            type="password"
-            name="password"
-            value={credentials.password}
-            onChange={handleChange}
-            required
-            placeholder="Enter your password"
-            className="w-full rounded-lg bg-[#F4F2EA] border border-slate-300 px-3 py-2.5 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA] focus:border-transparent"
-          />
+          <div className="relative">
+            <Lock
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+            />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={credentials.password}
+              onChange={handleChange}
+              required
+              placeholder="Enter your password"
+              className={`${inputClass} pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
-        {/* Sign-in button — navy (#16233F) with gold text, per prototype */}
+        {/* Remember me */}
+        <label className="flex items-center gap-2 text-sm text-[#6B6E76] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 accent-[#16233F]"
+          />
+          Remember me
+        </label>
+
+        {/* Dark navy Sign In button, gold text per prototype */}
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-lg bg-[#16233F] hover:bg-[#1d2f52] disabled:opacity-60 text-[#EDC31D] font-semibold text-base py-3 transition-colors"
         >
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? 'Signing in…' : 'Sign In'}
         </button>
 
-        {/* Under the button: title shown like a subtitle + system name */}
-        <div className="text-center space-y-0.5">
-          <p className="text-xs text-[#6B6E76]">
-            TMC Entrance Examination: Answer Sheet Recognition and Scoring System
-          </p>
-          <p className="text-xs font-semibold text-[#16233F]">Code Nexus</p>
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-[#6B6E76] mt-auto">
-          Trinidad Municipal College
+        {/* Card footer */}
+        <p className="text-center text-xs text-[#6B6E76]">
+          TMC Entrance Exam Scoring System • Code Nexus
         </p>
       </form>
+
+      {/* Below the card */}
+      <p className="mt-4 text-center text-sm text-[#6B6E76]">
+        Trinidad Municipal College
+        <br />
+        Entrance Examination Management System
+      </p>
     </div>
   )
 }
