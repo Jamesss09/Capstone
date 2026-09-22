@@ -64,7 +64,8 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Build plan written
 - [x] Phase 0 – Foundation & Setup (monorepo, Docker, Laravel 12, React+Vite, OMR skeleton, git init)
 - [x] GitHub remote connected — https://github.com/Jamesss09/Capstone (`main` + `develop` pushed)
-- [ ] Phase 1 – Database & Backend (Laravel + MySQL)
+- [x] Phase 1 – Database & Backend — 11 tables (incl. `section` key for A–E), Sanctum auth, RBAC (Admin/Staff), REST APIs, dashboard, audit logs, OMR upload queue — see [[Backend API]]
+- [ ] Phase 2 – AI/OMR Engine (Python + PyTorch + OpenCV)
 - [ ] Phase 2 – AI/OMR Engine (Python + PyTorch + OpenCV)
 - [ ] Phase 3 – Web Admin (React.js + Tailwind)
 - [ ] Phase 4 – Mobile Scanner (React Native)
