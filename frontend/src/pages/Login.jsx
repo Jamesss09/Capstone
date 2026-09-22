@@ -8,7 +8,6 @@ export default function Login() {
   const navigate = useNavigate()
 
   const [credentials, setCredentials] = useState({ login: '', password: '' })
-  const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -41,7 +40,7 @@ export default function Login() {
       {/* White card, matches prototype span (~450px) */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white rounded-2xl shadow-lg px-10 py-10 space-y-5"
+        className="w-full max-w-md bg-white rounded-2xl shadow-lg px-8 py-8 flex flex-col gap-5"
       >
         {/* TMC Logo */}
         <div className="flex justify-center">
@@ -52,13 +51,13 @@ export default function Login() {
           />
         </div>
 
-        {/* Title + subtitle (title sample #348BDA, subtitle #6B6E76) */}
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-[#348BDA] tracking-tight">
-            Code Nexus
+        {/* Title + subtitle per prototype */}
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-[#348BDA] leading-snug">
+            TMC Entrance Examination: Answer Sheet Recognition and Scoring System
           </h1>
-          <p className="text-sm text-[#6B6E76]">
-            Trinidad Municipal College · Entrance Examination Scoring System
+          <p className="mt-1 text-sm text-[#6B6E76]">
+            Sign in to access the examination management system
           </p>
         </div>
 
@@ -80,7 +79,7 @@ export default function Login() {
             onChange={handleChange}
             required
             autoFocus
-            placeholder="Enter your username or email"
+            placeholder="Enter your username"
             className="w-full rounded-lg bg-[#F4F2EA] border border-slate-300 px-3 py-2.5 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA] focus:border-transparent"
           />
         </div>
@@ -101,22 +100,6 @@ export default function Login() {
           />
         </div>
 
-        {/* Remember me / forgot password row */}
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 accent-[#16233F]"
-            />
-            <span className="text-[#6B6E76]">Remember me</span>
-          </label>
-          <a href="#" onClick={(e) => e.preventDefault()} className="text-[#348BDA] hover:underline">
-            Forgot password?
-          </a>
-        </div>
-
         {/* Sign-in button — navy (#16233F) with gold text, per prototype */}
         <button
           type="submit"
@@ -125,6 +108,19 @@ export default function Login() {
         >
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
+
+        {/* Under the button: title shown like a subtitle + system name */}
+        <div className="text-center space-y-0.5">
+          <p className="text-xs text-[#6B6E76]">
+            TMC Entrance Examination: Answer Sheet Recognition and Scoring System
+          </p>
+          <p className="text-xs font-semibold text-[#16233F]">Code Nexus</p>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[#6B6E76] mt-auto">
+          Trinidad Municipal College
+        </p>
       </form>
     </div>
   )
