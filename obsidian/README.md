@@ -62,7 +62,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Tech stack finalized
 - [x] Prototype inventory mapped
 - [x] Build plan written
-- [ ] Phase 0 – Foundation & Setup
+- [x] Phase 0 – Foundation & Setup (monorepo, Docker, Laravel 12, React+Vite, OMR skeleton, git init)
 - [ ] Phase 1 – Database & Backend (Laravel + MySQL)
 - [ ] Phase 2 – AI/OMR Engine (Python + PyTorch + OpenCV)
 - [ ] Phase 3 – Web Admin (React.js + Tailwind)
