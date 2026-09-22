@@ -19,10 +19,10 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 0 — Foundation & Setup
 **Goal:** Reproducible dev environment.
 
-- [ ] Create Git repo (GitHub) with branch strategy (`main`, `develop`, feature branches)
-- [ ] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
+- [x] Create Git repo (GitHub) with branch strategy (`main`, `develop`, feature branches)
+- [x] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
 - [ ] Define env configs (`dev`, `staging`, `prod`)
-- [ ] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
+- [x] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
 - **Deliverable:** `docker compose up` runs the full skeleton
 
 ---
@@ -30,23 +30,27 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 1 — Database & Backend (Laravel + MySQL)
 **Goal:** Data layer + REST APIs with RBAC that every other layer consumes.
 
-- [ ] Migrations + models for all 11 tables:
+- [x] Migrations + models for all 11 tables:
   - `users`, `settings`, `audit_logs`
   - `answer_keys`, `answer_key_items` *(include `section` column for A–E mapping)*
   - `examination_folders`, `examination_applicants`
   - `answer_sheets`, `applicant_answers`, `examination_results`
   - `omr_processing_jobs`
-- [ ] Auth (Laravel Sanctum) + role middleware (**Admin** vs **Staff**)
-- [ ] CRUD APIs: Answer Keys (Admin-only), Folders, Applicants, Results
-- [ ] File upload endpoint for answer sheet images (`image_path`, `image_hash`)
-- [ ] OMR job queue API (create job → status via `tbl_omr_processing_jobs`)
-- [ ] Audit logging middleware
+- [x] Auth (Laravel Sanctum) + role middleware (**Admin** vs **Staff**)
+- [x] CRUD APIs: Answer Keys (Admin-only), Folders, Applicants, Results
+- [x] File upload endpoint for answer sheet images (`image_path`, `image_hash`)
+- [x] OMR job queue API (create job → status via `tbl_omr_processing_jobs`)
+- [x] Audit logging middleware
 - **Deliverable:** postman-tested REST endpoints, seeded roles
 
 ---
 
 ## Phase 2 — AI/OMR Engine (Python + PyTorch + OpenCV)
 **Goal:** Convert a captured sheet image into verified answers + score.
+
+> [!warning] ⏸️ DEFERRED — owner builds own lightweight model + dataset first
+> The OMR microservice skeleton (`omr/` FastAPI + `sheet_config.py`) already exists, but real
+> recognition work waits for the custom model/dataset. Design notes below stay valid.
 
 - [ ] Pre-processing: perspective correction, rotation, lighting, despeckle
 - [ ] Sheet template config per section (from [[Answer Key Format]]):
@@ -65,7 +69,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 3 — Web Admin (React.js + Tailwind)
 **Goal:** Web platform for Admins (manage) and Staff (view).
 
-- [ ] Login (role-based redirect)
+- [x] Login (role-based redirect) — prototype-matched, `admin/admin123` + `staff/staff123`
 - [ ] Admin: Dashboard (stats), Answer Key Mgmt (with per-section editor + Edit/Add modals), Audit Logs, Result Mgmt (folders per course/school-year, filter, export), User/Settings Mgmt (Add/Edit modals)
 - [ ] Staff: scan upload (web fallback), results view
 - [ ] Result table with Passed/Failed status and export (CSV/PDF)

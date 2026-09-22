@@ -13,6 +13,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 > [!info] Phase 1 — Laravel 12 + MySQL (Docker) + Sanctum
 > Base URL (dev): `http://127.0.0.1:8000/api`
+> Web frontend (Phase 3): `http://127.0.0.1:5173` (`npm run dev` in `frontend/`)
 
 ---
 
