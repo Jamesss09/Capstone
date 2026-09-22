@@ -25,11 +25,10 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const user = await login(credentials.login, credentials.password)
-      // Role-based redirect (RBAC)
-      navigate(user.role === 'Administrator' ? '/dashboard' : '/staff', {
-        replace: true, // replace history so back button doesn't return to login
-      })
+      await login(credentials.login, credentials.password)
+      // Go to the landing page (role-based redirect returns once
+      // the admin dashboard / staff screens are built)
+      navigate('/', { replace: true })
     } catch (err) {
       setError(err.message) // "Invalid credentials." etc.
     } finally {
