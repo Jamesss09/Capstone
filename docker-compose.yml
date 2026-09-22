@@ -1,0 +1,53 @@
+name: code-nexus
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: code-nexus-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: code_nexus
+      MYSQL_USER: nexus
+      MYSQL_PASSWORD: nexus_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./docker/backend
+    container_name: code-nexus-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: code_nexus
+      DB_USERNAME: nexus
+      DB_PASSWORD: nexus_pass
+    volumes:
+      - ../backend:/var/www/html
+    ports:
+      - "8000:80"
+
+  omr:
+    build:
+      context: ./docker/omr
+    container_name: code-nexus-omr
+    restart: unless-stopped
+    volumes:
+      - ../omr:/app
+    ports:
+      - "5005:5005"
+
+volumes:
+  mysql_data:
