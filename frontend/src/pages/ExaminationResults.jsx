@@ -20,6 +20,9 @@ import { useAuth } from '../context/AuthContext'
 // Student types shown on the answer-sheet header
 const STUDENT_TYPES = ['NEW', 'TRANSFEREE', 'OLD', 'RETURNEE']
 
+// Courses offered at TMC (fixed filter list)
+const COURSES = ['BSIT', 'BSCRIM', 'BSED', 'BSOA', 'BEED', 'BAPOLSCI', 'BACOM']
+
 function plural(n, word) {
   return `${n} ${word}${n === 1 ? '' : 's'}`
 }
@@ -418,7 +421,6 @@ function FolderResults({ folderId }) {
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({ search: '', course: '', studentType: '', status: '' })
   const [detail, setDetail] = useState(null)
-  const [showNew, setShowNew] = useState(false)
 
   async function load() {
     try {
@@ -441,13 +443,6 @@ function FolderResults({ folderId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderId])
 
-  // Courses present in this folder's results (for the filter dropdown)
-  const courses = useMemo(
-    () =>
-      [...new Set(results.map((r) => r.applicant?.folder?.course).filter(Boolean))].sort(),
-    [results]
-  )
-
   const filtered = useMemo(() => {
     const q = filters.search.trim().toLowerCase()
     return results.filter((r) => {
@@ -468,7 +463,7 @@ function FolderResults({ folderId }) {
 
   return (
     <div>
-      {/* Toolbar: back + New SY actions */}
+      {/* Toolbar: back to all school years */}
       <div className="flex items-center justify-between gap-4 mb-5">
         <button
           onClick={() => navigate('/results')}
@@ -477,22 +472,6 @@ function FolderResults({ folderId }) {
           <ArrowLeft size={16} />
           All School Years
         </button>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => setShowNew(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
-          >
-            <Plus size={16} />
-            Add New SY
-          </button>
-          <button
-            onClick={() => setShowNew(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            <Plus size={16} />
-            New School Year
-          </button>
-        </div>
       </div>
 
       {error && (
@@ -526,7 +505,7 @@ function FolderResults({ folderId }) {
               className={selectCls}
             >
               <option value="">All Courses</option>
-              {courses.map((c) => (
+              {COURSES.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -665,18 +644,6 @@ function FolderResults({ folderId }) {
 
       {/* Result detail */}
       {detail && <ResultDetail result={detail} onClose={() => setDetail(null)} />}
-
-      {/* New SY modal (table view) */}
-      {showNew && (
-        <NewFolderModal
-          token={token}
-          onClose={() => setShowNew(false)}
-          onCreated={(created) => {
-            setShowNew(false)
-            navigate(`/results/${created.id}`)
-          }}
-        />
-      )}
     </div>
   )
 }
