@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png' // TMC seal
 
 /** Small KPI card — beige box with a leading brand icon */
 function StatCard({ icon: Icon, label, value }) {
@@ -22,6 +23,24 @@ function StatCard({ icon: Icon, label, value }) {
         </p>
         <p className="text-2xl font-bold text-[#16233F]">{value}</p>
       </div>
+    </div>
+  )
+}
+
+/** Brand card — TMC logo + college name (sits next to Passing Rate) */
+function CollegeCard() {
+  return (
+    <div className="flex items-center gap-4 rounded-xl bg-[#F4F2EA] border border-slate-200 px-5 py-5">
+      <div className="w-12 h-12 rounded-full bg-[#EDC31D] flex items-center justify-center shrink-0">
+        <img
+          src={logo}
+          alt="Trinidad Municipal College seal"
+          className="w-10 h-10 object-contain"
+        />
+      </div>
+      <p className="text-sm font-bold text-[#16233F] leading-snug tracking-wide">
+        TRINIDAD MUNICIPAL COLLEGE
+      </p>
     </div>
   )
 }
@@ -79,7 +98,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* KPI stat cards */}
-      <div className="grid grid-cols-3 gap-5">
+      <div className="grid grid-cols-3 xl:grid-cols-4 gap-5">
         <StatCard
           icon={UsersRound}
           label="Total Applicants"
@@ -95,6 +114,7 @@ export default function Dashboard() {
           label="Passing Rate"
           value={loading ? '—' : `${stats.pass_rate_percent ?? 0}%`}
         />
+        <CollegeCard />
       </div>
 
       {/* Recent scoring activity + system feed */}

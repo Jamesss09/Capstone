@@ -70,7 +70,11 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 **Goal:** Web platform for Admins (manage) and Staff (view).
 
 - [x] Login (**admin-only on web**) — prototype-matched; `admin/admin123`. Staff accounts are rejected on the web ("Staff accounts sign in via the mobile app."). Staff login uses the same design in the mobile app (Phase 4).
-- [ ] Admin: Dashboard (stats), Answer Key Mgmt (with per-section editor + Edit/Add modals), Audit Logs, Result Mgmt (folders per course/school-year, filter, export), User/Settings Mgmt (Add/Edit modals)
+- [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`.
+- [ ] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
+- [ ] Admin: Audit Logs
+- [ ] Admin: Result Mgmt (folders per course/school-year, filter, export)
+- [ ] Admin: User/Settings Mgmt (Add/Edit modals)
 - [ ] Result table with Passed/Failed status and export (CSV/PDF)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 

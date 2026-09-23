@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import {
   LayoutDashboard,
   KeyRound,
@@ -50,8 +51,10 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const meta = PAGE_META[pathname] ?? { title: 'Admin', subtitle: '' }
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  async function handleLogout() {
+  async function confirmLogout() {
+    setShowLogoutConfirm(false)
     await logout()
     navigate('/', { replace: true })
   }
@@ -119,7 +122,7 @@ export default function AdminLayout() {
         {/* Logout pinned at the bottom */}
         <div className="p-3 border-t border-white/10">
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
           >
             <LogOut size={18} />
@@ -148,6 +151,43 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Logout confirmation modal */}
+      {showLogoutConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                <LogOut size={18} className="text-red-500" />
+              </div>
+              <h2 className="text-base font-bold text-[#16233F]">Log out of Code Nexus?</h2>
+            </div>
+            <p className="mt-2 text-sm text-[#6B6E76]">
+              Are you sure you want to sign out? You'll need to sign in again to continue.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-lg bg-[#16233F] hover:bg-[#1d2f52] py-2.5 text-sm font-semibold text-[#EDC31D] transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
