@@ -28,6 +28,9 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 ## 2. Tasks per Agent
 
+> [!tip] Common task — ALL agents
+> At the end of every chat/session, **summarize and explain** to the owner what happened and what changed: files modified, commits made, decisions taken, tests run, and what's next. Use plain, easy-to-understand language.
+
 ### 2.1 Orchestrator
 - [ ] Keep a single source of truth: the Obsidian vault in `obsidian/`
 - [ ] Read the docs first (`Docu/*.docx`) before starting any task
@@ -72,6 +75,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 8. Single-page shaded answer sheets only; other formats rejected.
 9. Scoring engine must be **100% accurate**; bubble detection **≥95%**.
 10. A single sheet must score **within seconds**.
+11. **Summarize after every chat** — the agent must summarize and explain to the owner what happened and what changed (files, commits, decisions, tests, next steps) before ending a session. Never leave the owner guessing what was done.
 
 ---
 
@@ -94,6 +98,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 4. Test (accuracy, timing, RBAC, privacy)
 5. Update documentation (SRS/SDD/Obsidian)
 6. Request review/approval before merging
+7. End of chat: summarize and explain what happened and what changed (files, decisions, tests, next steps)
 ```
 
 ---
