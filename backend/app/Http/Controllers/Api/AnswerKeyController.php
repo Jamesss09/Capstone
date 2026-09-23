@@ -16,7 +16,10 @@ class AnswerKeyController extends Controller
     public function index(): JsonResponse
     {
         return response()->json(
-            AnswerKey::withCount('items')->with('creator:id,full_name')->latest()->get()
+            AnswerKey::withCount('items')
+                ->with(['creator:id,full_name', 'items:answer_key_id,section'])
+                ->latest()
+                ->get()
         );
     }
 
@@ -113,11 +116,50 @@ class AnswerKeyController extends Controller
         return response()->json(['message' => 'Answer key deleted.']);
     }
 
+    // Set this key as the single Active key (all others become Inactive)
+    public function activate(Request $request, AnswerKey $answerKey): JsonResponse
+    {
+        // Use query-builder updates so the target key always flips to Active even
+        // when it was already Active in memory (Eloquent's dirty check would skip
+        // the update and leave the key deactivated by the blanket query above).
+        DB::transaction(function () use ($answerKey) {
+            AnswerKey::where('status', 'Active')->update(['status' => 'Inactive']);
+            AnswerKey::whereKey($answerKey->id)->update(['status' => 'Active']);
+        });
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'ACTIVATE_ANSWER_KEY',
+            'table_name' => 'tbl_answer_keys',
+            'record_id' => $answerKey->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return response()->json($answerKey->fresh('items'));
+    }
+
+    // Toggle a key off. At most one key is Active at a time (enforced by
+    // activate()); deactivating is idempotent.
+    public function deactivate(Request $request, AnswerKey $answerKey): JsonResponse
+    {
+        AnswerKey::whereKey($answerKey->id)->update(['status' => 'Inactive']);
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'DEACTIVATE_ANSWER_KEY',
+            'table_name' => 'tbl_answer_keys',
+            'record_id' => $answerKey->id,
+            'ip_address' => $request->ip(),
+        ]);
+
+        return response()->json($answerKey->fresh('items'));
+    }
+
     // Replace all items of a key (used by edit modal)
     public function replaceItems(Request $request, AnswerKey $answerKey): JsonResponse
     {
         $data = $request->validate([
-            'items' => 'required|array|min:1',
+            'items' => 'required|array',
             'items.*.section' => 'nullable|string|max:100',
             'items.*.item_number' => 'required|integer|min:1',
             'items.*.correct_answer' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import AdminLayout from './components/AdminLayout'
 import Dashboard from './pages/Dashboard'
+import AnswerKeys from './pages/AnswerKeys'
 import ComingSoon from './pages/ComingSoon'
 import { useAuth } from './context/AuthContext'
 
@@ -28,7 +29,7 @@ function AppRoutes() {
       {/* Admin-only pages inside the shared sidebar/header layout */}
       <Route element={<AdminPages />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/answer-keys" element={<ComingSoon title="Answer Keys" />} />
+        <Route path="/answer-keys" element={<AnswerKeys />} />
         <Route path="/results" element={<ComingSoon title="Examination Results" />} />
         <Route path="/users" element={<ComingSoon title="User Management" />} />
         <Route path="/settings" element={<ComingSoon title="Settings" />} />

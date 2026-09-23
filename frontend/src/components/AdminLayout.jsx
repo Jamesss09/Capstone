@@ -21,7 +21,8 @@ const PAGE_META = {
   },
   '/answer-keys': {
     title: 'Answer Keys',
-    subtitle: 'Create and manage the official answer keys per examination section.',
+    subtitle:
+      'Manage official examination answer keys. The active key is what the mobile scanner uses by default.',
   },
   '/results': {
     title: 'Examination Results',

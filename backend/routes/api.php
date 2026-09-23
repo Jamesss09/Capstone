@@ -24,6 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:Administrator')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::apiResource('answer-keys', AnswerKeyController::class);
+        Route::post('answer-keys/{answer_key}/activate', [AnswerKeyController::class, 'activate']);
+        Route::post('answer-keys/{answer_key}/deactivate', [AnswerKeyController::class, 'deactivate']);
+        Route::put('answer-keys/{answer_key}/items', [AnswerKeyController::class, 'replaceItems']);
         Route::apiResource('settings', SettingController::class);
         Route::get('audit-logs', [AuditLogController::class, 'index']);
     });
