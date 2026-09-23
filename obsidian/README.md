@@ -79,18 +79,21 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 
 ## Latest Session Recap (2026-09-23)
 
-**Done (committed `8ff95cf`, pushed to `origin/develop`):**
-- **Answer Key Mgmt page**: card grid with ACTIVE/ARCHIVED badges, section breakdown, per-section answer builder + New/Edit modals, JSON/CSV import with downloadable templates, `AK-<year>-<id>` key codes
-- **Set as Active / Set as Inactive toggle** on every card + **Delete on all keys** (warns when deleting the active key); one-active-at-a-time enforced server-side (`activate()` deactivates all others; fixed Eloquent dirty-check no-op bug)
-- Backend routes added: `POST /answer-keys/{key}/activate`, `POST /answer-keys/{key}/deactivate`
-- **Live System Activity feed** on the dashboard — real audit logs (actor, action, relative time, IP), 5s polling + manual refresh; KPI cards refresh on the same poll
+**Done (committed `1667d36`, pushed to `origin/develop`):**
+- **Exam Results Mgmt** (`frontend/src/pages/ExaminationResults.jsx`, routes `/results` + `/results/{folderId}`):
+  - **Folder launcher** — school-year folder cards (Current 🟢/Archived badges, result + applicant counts, "Open Folder"), gold "+ Add New SY"
+  - **Add New School Year modal** — `SY YYYY-YYYY` validation (regex also enforced by backend), Current/Archived radio, optional description; `+ Add New SY` + `+ New School Year` both open it
+  - **Results table** — filter bar (🔍 name or examinee ID, All Courses, All Student Types, All Status, Clear), folder header line `SY … · N of N result(s) shown`, columns APPLICANT · EXAMINEE ID · EXAM DATE · SCORE · STATUS · ACTION, **View** detail modal, **Export CSV**, empty states for "no results yet" / "no match"
+- Backend: `GET /folders` now returns `applicants_result_count`; `GET /results` gains `folder_id`, `course`, `student_type` filters + search-by-examinee-ID; folder `school_year` validated as `SY YYYY-YYYY`; migration adds `tbl_examination_applicants.student_type` (NEW/TRANSFEREE/OLD/RETURNEE)
+- Sidebar label "Examination Results" → "Exam Results" per prototype
+- Earlier this day: Answer Key Mgmt + live dashboard feed (`8ff95cf`)
 
 **Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`).
 
 **Next session options:**
 1. Audit Logs page (backend `GET /audit-logs` ready)
-2. Examination Results Mgmt (folders, filter, CSV/PDF export)
-3. Users / Settings Mgmt
+2. Users / Settings Mgmt
+3. PDF export for results (CSV done)
 4. Phase 4 mobile scanner / Phase 2 OMR (model pending)
 
 ---
