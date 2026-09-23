@@ -69,8 +69,9 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Phase 3 – **Login screen** (prototype-matched: TMC seal, navy/gold, icons, remember-me, footer)
 - [x] Phase 3 – **Admin Dashboard** (KPI cards, Recent Scoring Activity, **live System Activity feed** from audit logs)
 - [x] Phase 3 – **Answer Key Mgmt** (card grid, per-section builder, JSON/CSV import, Set as Active/Inactive toggle, delete — one-active enforced)
+- [x] Phase 3 – **Exam Results Mgmt** (school-year folder launcher → per-folder results table, filters incl. fixed course list, View detail, CSV export)
 - [ ] Phase 2 – AI/OMR Engine — ⏸️ **deferred**: user builds own lightweight model + dataset first
-- [ ] Phase 3 – Web Admin (remaining screens: Results, Users, Settings, Audit Logs)
+- [ ] Phase 3 – Web Admin (remaining screens: Users, Settings, Audit Logs)
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation
@@ -79,13 +80,14 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 
 ## Latest Session Recap (2026-09-23)
 
-**Done (committed `1667d36`, pushed to `origin/develop`):**
+**Done (committed `1667d36` + tweak `85b6608`, pushed to `origin/develop`):**
 - **Exam Results Mgmt** (`frontend/src/pages/ExaminationResults.jsx`, routes `/results` + `/results/{folderId}`):
   - **Folder launcher** — school-year folder cards (Current 🟢/Archived badges, result + applicant counts, "Open Folder"), gold "+ Add New SY"
   - **Add New School Year modal** — `SY YYYY-YYYY` validation (regex also enforced by backend), Current/Archived radio, optional description; `+ Add New SY` + `+ New School Year` both open it
   - **Results table** — filter bar (🔍 name or examinee ID, All Courses, All Student Types, All Status, Clear), folder header line `SY … · N of N result(s) shown`, columns APPLICANT · EXAMINEE ID · EXAM DATE · SCORE · STATUS · ACTION, **View** detail modal, **Export CSV**, empty states for "no results yet" / "no match"
 - Backend: `GET /folders` now returns `applicants_result_count`; `GET /results` gains `folder_id`, `course`, `student_type` filters + search-by-examinee-ID; folder `school_year` validated as `SY YYYY-YYYY`; migration adds `tbl_examination_applicants.student_type` (NEW/TRANSFEREE/OLD/RETURNEE)
 - Sidebar label "Examination Results" → "Exam Results" per prototype
+- **Tweak (`85b6608`)**: removed the two "Add New SY / New School Year" buttons from the folder table view (create SY from launcher only); "All Courses" filter is now the fixed list **BSIT · BSCRIM · BSED · BSOA · BEED · BAPOLSCI · BACOM**
 - Earlier this day: Answer Key Mgmt + live dashboard feed (`8ff95cf`)
 
 **Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`).
