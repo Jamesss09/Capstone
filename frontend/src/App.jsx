@@ -1,25 +1,41 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
-import Home from './pages/Home'
+import AdminLayout from './components/AdminLayout'
+import Dashboard from './pages/Dashboard'
+import ComingSoon from './pages/ComingSoon'
 import { useAuth } from './context/AuthContext'
 
-// Routes live inside App. The `useAuth` here reads the same context
-// that Login/Home use, so everything stays in sync.
+/**
+ * Layout route guard: only Administrators may use the web app
+ * (staff sign in via the mobile app). Renders the shared shell.
+ */
+function AdminPages() {
+  const { isAuthenticated, isAdmin } = useAuth()
+  if (!isAuthenticated || !isAdmin) return <Navigate to="/" replace />
+  return <AdminLayout />
+}
+
 function AppRoutes() {
   const { isAuthenticated, isAdmin } = useAuth()
-
-  // Web is admin-only: staff sign in via the mobile app.
-  const showHome = isAuthenticated && isAdmin
+  const ok = isAuthenticated && isAdmin
 
   return (
     <Routes>
-      {/* Root: show login when logged out, Home when an admin is logged in */}
-      <Route path="/" element={showHome ? <Home /> : <Login />} />
+      {/* Root: login when logged out, dashboard when an admin is in */}
+      <Route path="/" element={ok ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/login" element={ok ? <Navigate to="/dashboard" replace /> : <Login />} />
 
-      {/* If an admin is already logged in, skip the login screen */}
-      <Route path="/login" element={showHome ? <Navigate to="/" replace /> : <Login />} />
+      {/* Admin-only pages inside the shared sidebar/header layout */}
+      <Route element={<AdminPages />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/answer-keys" element={<ComingSoon title="Answer Keys" />} />
+        <Route path="/results" element={<ComingSoon title="Examination Results" />} />
+        <Route path="/users" element={<ComingSoon title="User Management" />} />
+        <Route path="/settings" element={<ComingSoon title="Settings" />} />
+        <Route path="/audit-logs" element={<ComingSoon title="Audit Logs" />} />
+      </Route>
 
-      {/* Anything else → root (which shows login or home) */}
+      {/* Anything else → root (which shows login or redirects to dashboard) */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

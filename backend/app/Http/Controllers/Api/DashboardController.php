@@ -7,6 +7,7 @@ use App\Models\ExaminationApplicant;
 use App\Models\ExaminationFolder;
 use App\Models\AnswerKey;
 use App\Models\ExaminationResult;
+use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,13 @@ class DashboardController extends Controller
             'passed' => ExaminationResult::where('status', 'Passed')->count(),
             'failed' => ExaminationResult::where('status', 'Failed')->count(),
             'pass_rate_percent' => $this->passRate(),
+            'sheets_scanned_today' => AuditLog::where('action', 'SCAN_ANSWER_SHEET')
+                ->whereDate('created_at', today())
+                ->count(),
+            'recent_results' => ExaminationResult::with([
+                'applicant:id,applicant_name',
+                'answerKey:id,exam_title,passing_score',
+            ])->latest()->limit(5)->get(),
             'recent_activities' => \App\Models\AuditLog::with('user:id,full_name')->latest()->limit(10)->get(),
         ]);
     }
