@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import AdminLayout from './components/AdminLayout'
 import Dashboard from './pages/Dashboard'
 import AnswerKeys from './pages/AnswerKeys'
+import ExaminationResults from './pages/ExaminationResults'
 import ComingSoon from './pages/ComingSoon'
 import { useAuth } from './context/AuthContext'
 
@@ -30,7 +31,8 @@ function AppRoutes() {
       <Route element={<AdminPages />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/answer-keys" element={<AnswerKeys />} />
-        <Route path="/results" element={<ComingSoon title="Examination Results" />} />
+        <Route path="/results" element={<ExaminationResults />} />
+        <Route path="/results/:folderId" element={<ExaminationResults />} />
         <Route path="/users" element={<ComingSoon title="User Management" />} />
         <Route path="/settings" element={<ComingSoon title="Settings" />} />
         <Route path="/audit-logs" element={<ComingSoon title="Audit Logs" />} />

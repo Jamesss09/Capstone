@@ -32,7 +32,9 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | GET/POST | `/answer-keys` | list / create (+ nested `items`) |
 | GET/PUT/DELETE | `/answer-keys/{key}` | show / update / delete |
 | PUT | `/answer-keys/{key}/items` | replace all items (edit modal) |
-| GET/POST/PUT/DELETE | `/folders` | examination folders |
+| POST | `/answer-keys/{key}/activate` | set this key **Active**, all others Inactive (one-active) |
+| POST | `/answer-keys/{key}/deactivate` | toggle key off (idempotent) |
+| GET/POST/PUT/DELETE | `/folders` | examination folders; index also returns `applicants_count` + `applicants_result_count` |
 | GET/POST/PUT | `/settings` | system settings |
 | GET | `/audit-logs` | paginated audit trail |
 | GET | `/dashboard` | stats + recent activity |
@@ -44,8 +46,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | GET | `/omr-jobs/{job}` | job status |
 | GET/POST | `/applicants` | list (filters: folder_id, status) / create |
 | GET/PUT/DELETE | `/applicants/{applicant}` | show (with sheet+answers+result) / update / delete |
-| GET | `/results` | list (filters: status, answer_key_id, search) |
-| GET | `/results/{result}` | detail |
+| GET | `/results` | list (filters: `folder_id`, `status`, `answer_key_id`, `course`, `student_type`, `search` — name **or** examinee ID) |
+| GET | `/results/{result}` | detail (with applicant, answer key, sheet + answers) |
 
 ---
 
@@ -54,6 +56,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - Answer choices restricted to **A, B, C, D, E** (validation rejects anything else)
 - Answer key items are unique per `[answer_key_id, section, item_number]` — sections restart numbering at 1
 - All state-changing actions write `tbl_audit_logs`
+- Folder `school_year` must match `SY YYYY-YYYY` (e.g. `SY 2026-2027`; the `SY` prefix is optional on input)
+- `tbl_examination_applicants.student_type` added (Phase 3) for the sheet-header types NEW / TRANSFEREE / OLD / RETURNEE
 - Passwords stored via bcrypt (`password_hash`)
 - MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus`/`nexus_pass`, root `root_pass`)
 

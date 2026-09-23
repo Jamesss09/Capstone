@@ -26,7 +26,7 @@ const PAGE_META = {
   },
   '/results': {
     title: 'Examination Results',
-    subtitle: 'Browse, filter, and export applicant results.',
+    subtitle: 'Select a school year folder first to view its examination results.',
   },
   '/users': {
     title: 'User Management',
@@ -97,7 +97,7 @@ export default function AdminLayout() {
 
           <NavLink to="/results" className={({ isActive }) => (isActive ? activeLink : idleLink)}>
             <ClipboardList size={18} />
-            Examination Results
+            Exam Results
           </NavLink>
 
           {/* System Management group — indented sub-items */}

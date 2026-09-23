@@ -17,6 +17,7 @@ class ExaminationApplicant extends Model
         'applicant_name',
         'examination_date',
         'status',
+        'student_type',
         'created_by',
     ];
 

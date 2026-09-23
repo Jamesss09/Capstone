@@ -73,9 +73,9 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`.
 - [x] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
 - [ ] Admin: Audit Logs
-- [ ] Admin: Result Mgmt (folders per course/school-year, filter, export)
+- [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
 - [ ] Admin: User/Settings Mgmt (Add/Edit modals)
-- [ ] Result table with Passed/Failed status and export (CSV/PDF)
+- [x] Result table with Passed/Failed status + CSV export (PDF export deferred)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---

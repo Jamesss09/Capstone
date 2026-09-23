@@ -67,36 +67,31 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] GitHub remote connected — https://github.com/Jamesss09/Capstone (`main` + `develop` pushed)
 - [x] Phase 1 – Database & Backend — 11 tables (incl. `section` key for A–E), Sanctum auth, RBAC (Admin/Staff), REST APIs, dashboard, audit logs, OMR upload queue — see [[Backend API]]
 - [x] Phase 3 – **Login screen** (prototype-matched: TMC seal, navy/gold, icons, remember-me, footer)
+- [x] Phase 3 – **Admin Dashboard** (KPI cards, Recent Scoring Activity, **live System Activity feed** from audit logs)
+- [x] Phase 3 – **Answer Key Mgmt** (card grid, per-section builder, JSON/CSV import, Set as Active/Inactive toggle, delete — one-active enforced)
 - [ ] Phase 2 – AI/OMR Engine — ⏸️ **deferred**: user builds own lightweight model + dataset first
-- [ ] Phase 3 – Web Admin (remaining screens: Dashboard, Answer Keys, Results, Users, Settings, Audit Logs)
+- [ ] Phase 3 – Web Admin (remaining screens: Results, Users, Settings, Audit Logs)
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation
 
 ---
 
-## Last Session Recap (2026-09-23)
+## Latest Session Recap (2026-09-23)
 
-**Done:**
-- Phase 1 backend verified live (login/RBAC/answer-keys/dashboard APIs)
-- Phase 3 started: React + Tailwind + React Router wired; login form implemented with `Prototype/logo/Logo.png`, field icons (User/Lock/Eye), and the exact Login_Prototype layout/text; works with `admin/admin123` (Administrator) & `staff/staff123` (Staff)
+**Done (committed `8ff95cf`, pushed to `origin/develop`):**
+- **Answer Key Mgmt page**: card grid with ACTIVE/ARCHIVED badges, section breakdown, per-section answer builder + New/Edit modals, JSON/CSV import with downloadable templates, `AK-<year>-<id>` key codes
+- **Set as Active / Set as Inactive toggle** on every card + **Delete on all keys** (warns when deleting the active key); one-active-at-a-time enforced server-side (`activate()` deactivates all others; fixed Eloquent dirty-check no-op bug)
+- Backend routes added: `POST /answer-keys/{key}/activate`, `POST /answer-keys/{key}/deactivate`
+- **Live System Activity feed** on the dashboard — real audit logs (actor, action, relative time, IP), 5s polling + manual refresh; KPI cards refresh on the same poll
 
-**Deliberate simplifications (frontend is login-only right now):**
-- `src/pages/Dashboard.jsx`, `StaffHome.jsx`, `components/ProtectRoute.jsx` removed
-- `App.jsx`: `/` shows Login when logged out, a minimal `Home` landing (welcome + logout) when logged in
-- Role-based redirect (`Admin → /dashboard`, `Staff → /staff`) returns when real screens are built
-
-**⚠️ Uncommitted (waiting on human to commit):**
-```powershell
-git add .
-git commit -m "phase 3: login form + app shell (fix blank page on npm run dev)"
-git push origin develop
-```
+**Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`).
 
 **Next session options:**
-1. Sidebar/layout shell (all web screens reuse it)
-2. Admin Dashboard from `Admin_Dashboard_Prototype.png`
-3. A dedicated `Session Log.md` note to track daily progress habitually
+1. Audit Logs page (backend `GET /audit-logs` ready)
+2. Examination Results Mgmt (folders, filter, CSV/PDF export)
+3. Users / Settings Mgmt
+4. Phase 4 mobile scanner / Phase 2 OMR (model pending)
 
 ---
 

@@ -14,21 +14,35 @@ class ExaminationFolderController extends Controller
     public function index(): JsonResponse
     {
         return response()->json(
-            ExaminationFolder::withCount('applicants')->with('creator:id,full_name')->latest()->get()
+            ExaminationFolder::withCount([
+                'applicants',
+                // Number of results filed: count applicants that already have a result
+                'applicants as applicants_result_count' => fn ($q) => $q->whereHas('result'),
+            ])
+                ->with('creator:id,full_name')
+                ->latest()
+                ->get()
         );
     }
 
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'course' => 'required|string|max:100',
-            'school_year' => 'required|string|max:50',
+            'course' => 'sometimes|nullable|string|max:100',
+            'school_year' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^(SY )?\d{4}-\d{4}$/',
+            ],
             'description' => 'nullable|string',
             'status' => ['sometimes', Rule::in(['Active', 'Archived'])],
         ]);
 
         $folder = ExaminationFolder::create([
-            ...$data,
+            'school_year' => $data['school_year'],
+            'course' => $data['course'] ?? '',
+            'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? 'Active',
             'created_by' => $request->user()->id,
         ]);
