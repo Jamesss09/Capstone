@@ -41,7 +41,8 @@ services:
 
   omr:
     build:
-      context: ./docker/omr
+      context: ./omr
+      dockerfile: ../docker/omr/Dockerfile
     container_name: code-nexus-omr
     restart: unless-stopped
     volumes:
