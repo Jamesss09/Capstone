@@ -6,15 +6,18 @@ import { useAuth } from './context/AuthContext'
 // Routes live inside App. The `useAuth` here reads the same context
 // that Login/Home use, so everything stays in sync.
 function AppRoutes() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isAdmin } = useAuth()
+
+  // Web is admin-only: staff sign in via the mobile app.
+  const showHome = isAuthenticated && isAdmin
 
   return (
     <Routes>
-      {/* Root: show login when logged out, Home when logged in */}
-      <Route path="/" element={isAuthenticated ? <Home /> : <Login />} />
+      {/* Root: show login when logged out, Home when an admin is logged in */}
+      <Route path="/" element={showHome ? <Home /> : <Login />} />
 
-      {/* If already logged in, skip the login screen */}
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+      {/* If an admin is already logged in, skip the login screen */}
+      <Route path="/login" element={showHome ? <Navigate to="/" replace /> : <Login />} />
 
       {/* Anything else → root (which shows login or home) */}
       <Route path="*" element={<Navigate to="/" replace />} />

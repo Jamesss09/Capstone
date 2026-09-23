@@ -69,18 +69,17 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 3 — Web Admin (React.js + Tailwind)
 **Goal:** Web platform for Admins (manage) and Staff (view).
 
-- [x] Login (role-based redirect) — prototype-matched, `admin/admin123` + `staff/staff123`
+- [x] Login (**admin-only on web**) — prototype-matched; `admin/admin123`. Staff accounts are rejected on the web ("Staff accounts sign in via the mobile app."). Staff login uses the same design in the mobile app (Phase 4).
 - [ ] Admin: Dashboard (stats), Answer Key Mgmt (with per-section editor + Edit/Add modals), Audit Logs, Result Mgmt (folders per course/school-year, filter, export), User/Settings Mgmt (Add/Edit modals)
-- [ ] Staff: scan upload (web fallback), results view
 - [ ] Result table with Passed/Failed status and export (CSV/PDF)
-- **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals)
+- **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---
 
 ## Phase 4 — Mobile Scanner (React Native, Android)
 **Goal:** On-device capture + upload.
 
-- [ ] Staff login
+- [ ] Staff login — same design as the web login (`Login_Prototype`), inside the mobile app
 - [ ] Home Scanner → camera capture with capture guidance (lighting/straight-on hints)
 - [ ] Scan Answer Sheet screen (capture + preview)
 - [ ] Identify applicant (name confirmation)

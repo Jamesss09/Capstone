@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo.png' // TMC seal (Prototype/logo/Logo.png)
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, logout } = useAuth()
   const navigate = useNavigate()
 
   const [credentials, setCredentials] = useState({ login: '', password: '' })
@@ -25,9 +25,16 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await login(credentials.login, credentials.password)
-      // Go to the landing page (role-based redirect returns once
-      // the admin dashboard / staff screens are built)
+      const user = await login(credentials.login, credentials.password)
+
+      // The web app is admin-only — staff sign in via the mobile app.
+      // (The same API authenticates both; we reject staff here on the web.)
+      if (user?.role !== 'Administrator') {
+        await logout() // don't keep a staff session on the web
+        setError('Staff accounts sign in via the mobile app.')
+        return
+      }
+
       navigate('/', { replace: true })
     } catch (err) {
       setError(err.message) // "Invalid credentials." etc.
