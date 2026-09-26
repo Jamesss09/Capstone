@@ -76,7 +76,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
 - [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
 - [x] Admin: Settings Mgmt — **Appearance Light/Dark** toggle (Fig 19.0); persists `theme` to `tbl_settings` (+ localStorage mirror) and applies a **full dark theme** across the admin UI (CSS-variable tokens in `index.css`, `.dark` class on `<html>`; sidebar stays navy). Settings changes are audit-logged (`CREATE_SETTING`/`UPDATE_SETTING`/`DELETE_SETTING`).
-- [x] Result table with Passed/Failed status + CSV export (PDF export deferred)
+- [x] Result table with Passed/Failed status + **CSV export** and **PDF export** (client-side jsPDF + autotable, honors active filters)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---

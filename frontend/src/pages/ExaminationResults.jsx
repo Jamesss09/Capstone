@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Download,
   Eye,
+  FileText,
   FolderOpen,
   Plus,
   Search,
@@ -66,6 +67,64 @@ function downloadCsv(rows, folder) {
   a.download = `results-${(folder?.school_year ?? 'export').replace(/\s+/g, '-')}.csv`
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// Brand colors for the PDF header/footer (nave #16233F, beige #F4F2EA, muted #6B6E76)
+const PDF_NAVY = [22, 35, 63]
+const PDF_MUTED = [107, 110, 118]
+const PDF_BEIGE = [244, 242, 234]
+const PDF_PASS = [4, 120, 87] // emerald-700
+const PDF_FAIL = [185, 28, 28] // red-700
+
+function downloadPdf(rows, folder) {
+  // Lazy-load the PDF libs so they stay out of the main bundle
+  Promise.all([import('jspdf'), import('jspdf-autotable')]).then(
+    ([{ jsPDF }, { default: autoTable }]) => {
+      const doc = new jsPDF()
+
+      // Header: system branding + school year + generation timestamp
+      doc.setFontSize(13)
+      doc.setTextColor(...PDF_NAVY)
+      doc.text('TMC Entrance Exam — Answer Sheet Recognition & Scoring System', 14, 16)
+      doc.setFontSize(10)
+      doc.setTextColor(...PDF_MUTED)
+      const meta = [
+        `School Year: ${folder?.school_year ?? '—'}`,
+        `Total Results: ${rows.length}`,
+        `Generated: ${new Date().toLocaleString()}`,
+      ]
+      doc.text(meta.join('   ·   ').toUpperCase(), 14, 23)
+
+      autoTable(doc, {
+        startY: 30,
+        head: [['Applicant', 'Examinee ID', 'Exam Date', 'Score', 'Total Items', 'Status']],
+        body: rows.map((r) => [
+          r.applicant?.applicant_name ?? '',
+          examId(r.applicant_id),
+          r.applicant?.examination_date ?? '',
+          Number(r.score).toFixed(2),
+          r.total_items ?? '',
+          r.status ?? '',
+        ]),
+        styles: { fontSize: 9, cellPadding: 2.5 },
+        headStyles: { fillColor: PDF_NAVY, textColor: [255, 255, 255], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: PDF_BEIGE },
+        foot: [[`${rows.length} result${rows.length === 1 ? '' : 's'}`]],
+        footStyles: { fillColor: PDF_BEIGE, textColor: PDF_NAVY, fontStyle: 'bold' },
+        didParseCell: (data) => {
+          // Color-code the Status column (index 5 of body rows)
+          if (data.section === 'body' && data.column.index === 5) {
+            const status = String(data.cell.raw)
+            data.cell.styles.textColor =
+              status === 'Passed' ? PDF_PASS : status === 'Failed' ? PDF_FAIL : PDF_MUTED
+            data.cell.styles.fontStyle = 'bold'
+          }
+        },
+      })
+
+      doc.save(`results-${(folder?.school_year ?? 'export').replace(/\s+/g, '-')}.pdf`)
+    }
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -547,6 +606,14 @@ function FolderResults({ folderId }) {
             >
               <Download size={15} />
               Export CSV
+            </button>
+            <button
+              onClick={() => downloadPdf(filtered, folder)}
+              disabled={filtered.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#348BDA] px-4 py-2 text-sm font-bold text-[#348BDA] hover:bg-[#348BDA]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FileText size={15} />
+              Export PDF
             </button>
           </div>
 
