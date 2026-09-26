@@ -34,6 +34,47 @@ function StatusBadge({ active }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Password strength meter                                             */
+/* ------------------------------------------------------------------ */
+
+// Informational only — the min-8 rule is still enforced on save.
+function strengthScore(pw) {
+  let s = 0
+  if (pw.length >= 8) s++
+  if (pw.length >= 12) s++
+  if (/[A-Z]/.test(pw)) s++
+  if (/[a-z]/.test(pw)) s++
+  if (/\d/.test(pw)) s++
+  if (/[^A-Za-z0-9]/.test(pw)) s++
+  return s // 0..6
+}
+
+function strengthLevel(score) {
+  if (score <= 1) return { label: 'Weak', bar: 'bg-red-400', text: 'text-red-600', width: '25%' }
+  if (score <= 3) return { label: 'Fair', bar: 'bg-amber-400', text: 'text-amber-600', width: '50%' }
+  if (score <= 5) return { label: 'Strong', bar: 'bg-[#348BDA]', text: 'text-[#348BDA]', width: '75%' }
+  return { label: 'Very Strong', bar: 'bg-emerald-500', text: 'text-emerald-600', width: '100%' }
+}
+
+function StrengthMeter({ password }) {
+  if (!password) return null // only while typing
+  const level = strengthLevel(strengthScore(password))
+  return (
+    <div className="mt-1.5" aria-live="polite">
+      <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+        <div
+          className={`h-full ${level.bar} transition-all duration-300`}
+          style={{ width: level.width }}
+        />
+      </div>
+      <p className={`mt-1 text-[11px] font-semibold ${level.text}`}>
+        Password strength: {level.label}
+      </p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Add / Edit user modal                                               */
 /* ------------------------------------------------------------------ */
 
@@ -204,6 +245,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
               />
             </div>
           </div>
+          {password && <StrengthMeter password={password} />}
 
           <div>
             <label className="block text-xs font-semibold text-[#6B6E76] mb-2">Status</label>

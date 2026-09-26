@@ -30,7 +30,7 @@ const PAGE_META = {
   },
   '/users': {
     title: 'User Management',
-    subtitle: 'Manage system users and staff accounts.',
+    subtitle: 'Manage administrator and staff accounts and roles.',
   },
   '/settings': {
     title: 'Settings',
@@ -72,9 +72,9 @@ export default function AdminLayout() {
             className="w-11 h-11 rounded-full object-contain bg-[#EDC31D]"
           />
           <div className="leading-tight">
-            <p className="text-[#EDC31D] font-bold text-sm">TMc Entrance Exam</p>
+            <p className="text-[#EDC31D] font-bold text-sm">TMC Entrance Exam</p>
             <p className="text-white text-[10px] font-semibold tracking-[0.22em]">
-              SCORING SYSTEM
+              Answer Sheet Recognition & Scoring System
             </p>
           </div>
         </div>
