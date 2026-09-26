@@ -11,6 +11,7 @@ import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { TableSkeleton } from '../components/Skeleton'
 
+
 /** Chip colors for an action code — grouped by intent (SDD Table 6.0). */
 function actionStyle(action) {
   if (!action) return 'bg-[var(--fill-strong)] text-[var(--muted)]'

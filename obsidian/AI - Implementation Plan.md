@@ -22,7 +22,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Create Git repo (GitHub) with branch strategy (`main`, `develop`, feature branches)
 - [x] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
 - [ ] Define env configs (`dev`, `staging`, `prod`)
-- [x] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
+- [ ] Scaffold **React Native app** — ⚠️ **NOT done**: `mobile/` is only a README placeholder (no RN project, no package.json anywhere in the repo). Plan doc previously marked this done — corrected 2026-09-26. **Owner confirmed: build later.** Phase 4 starts with an RN init (`npx @react-native-community/cli init`).
+- [x] Scaffold Laravel app + React.js app + Python service skeleton
 - **Deliverable:** `docker compose up` runs the full skeleton — *2026-09-26: fixed (compose mount paths + Apache `public/` docroot) so it now serves the real app; still ~10× slower over Windows bind mounts, so dev backend = `php artisan serve` (see [[README]] recap)*
 
 ---
@@ -51,6 +52,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 > [!warning] ⏸️ DEFERRED — owner builds own lightweight model + dataset first
 > The OMR microservice skeleton (`omr/` FastAPI + `sheet_config.py`) already exists, but real
 > recognition work waits for the custom model/dataset. Design notes below stay valid.
+> **Owner confirmed 2026-09-26: AI/model is planned for later.**
 
 - [ ] Pre-processing: perspective correction, rotation, lighting, despeckle
 - [ ] Sheet template config per section (from [[Answer Key Format]]):
@@ -70,15 +72,15 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 **Goal:** Web platform for Admins (manage) and Staff (view).
 
 - [x] Login (**admin-only on web**) — prototype-matched; `admin/admin123`. Staff accounts are rejected on the web ("Staff accounts sign in via the mobile app."). Staff login uses the same design in the mobile app (Phase 4).
-- [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`.
+- [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`; the live feed is a **separate `GET /dashboard/activity`** (15 s poll paused on hidden tabs, skeleton state, **Clear ✕ button**) listing **answer-key lifecycle events only** — created/updated/activated/deactivated/deleted — from **active users** (doesn't look like the full audit log, and never blocks the main payload)
 - [x] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
 - [x] Admin: Audit Logs — "Recent Activity" card, color-coded action chips, paginated 50 (Prev/Next), refresh; empty state matches prototype
 - [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
-- [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
+- [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard) — **password visibility toggles** (Eye/EyeOff) on Password + Confirm in the user modals
 - [x] Admin: Settings Mgmt — **Appearance Light/Dark** toggle (Fig 19.0); persists `theme` to `tbl_settings` (+ localStorage mirror) and applies a **full dark theme** across the admin UI (CSS-variable tokens in `index.css`, `.dark` class on `<html>`; sidebar stays navy). Settings changes are audit-logged (`CREATE_SETTING`/`UPDATE_SETTING`/`DELETE_SETTING`).
 - [x] Result table with Passed/Failed status + **CSV export** and **PDF export** (client-side jsPDF + autotable, honors active filters)
 - [x] UI polish — **skeleton loading** on all admin data screens (`frontend/src/components/Skeleton.jsx`: pulsing StatCard / Card / Table / Feed / Form placeholders replacing "Loading…" text while data fetches); browser tab title **"TMC Entrance Examination: Answer Sheet Recognition and Scoring System"** + **TMC-seal favicon** (`index.html` → `public/favicon.png`, 26 KB — seal also slimmed to `logo-256.png` 84 KB, was 885 KB)
-- [x] Dashboard **load performance** — session cache (instant remounts, 30s TTL, silent background refresh), in-flight dedupe (kills the StrictMode double-fetch), theme row fetched from backend once per session instead of every mount (dev backend is single-threaded `php artisan serve`; `config:cache` tried → no gain, reverted)
+- [x] Dashboard **load performance** — dev "never loads" root cause found + fixed: React **StrictMode** double-mount discarded fetches (mount guard now re-arms), so the dashboard paints in ~80–166 ms; session cache (instant remounts, 30s TTL, silent background refresh), in-flight dedupe, theme row fetched once per session; OPcache `revalidate_freq` **2 → 30** in XAMPP php.ini killed the ~1.1 s stat-scan spikes; skeleton loading restored everywhere (safe now the root-cause bug is gone)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---

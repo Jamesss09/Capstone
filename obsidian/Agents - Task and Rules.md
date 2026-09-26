@@ -35,7 +35,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [ ] Keep a single source of truth: the Obsidian vault in `obsidian/`
 - [ ] Read the docs first (`Docu/*.docx`) before starting any task
 - [ ] Break features into: Answer Key Mgmt → OMR Pipeline → Scoring → Results → Dashboard
-- [ ] Flag inconsistencies between docs and code
+- [ ] Flag inconsistencies between docs and code — and **warn the owner** per Hard Rule 13 (never build silently against the docs)
 
 ### 2.2 Coding Agent
 - [ ] Build per the **Tech Stack** (no extra frameworks without approval)
@@ -77,8 +77,12 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 10. A single sheet must score **within seconds**.
 11. **Summarize after every chat** — the agent must summarize and explain to the owner what happened and what changed (files changed, decisions, tests, next steps; changes are handed off for the owner to commit) before ending a session. Never leave the owner guessing what was done.
 12. **The owner commits.** Agents **never** run `git commit` or `git push`. Do the work, verify it (builds/tests pass), then hand off and tell the owner exactly what changed so *they* review and commit. (Staging with `git add` is allowed if it helps the owner.)
+13. **Warn on stack/doc drift — ALWAYS.** If the owner's request — or anything in the code/task — contradicts the documented **Tech Stack**, requirements (**SRS/SDD**), the [[Answer Key Format]], the **RBAC model**, established conventions (web = admin-only, staff = mobile-only, per-section A–E/A–D, no Flowise/JS-html, agents never commit), or the UI prototypes, the agent **must pause and warn the owner first**: name exactly what conflicts, quote the doc it violates, and ask for explicit approval *before* implementing. Never silently build something that drifts from the docs, and never assume the owner knows about the contradiction — **flag it**.
 
 ---
+
+> [!warning] Applies to every agent
+> Warning rule **13** triggers on ANY drift the agent notices — not just owner requests. If a piece of work (including work the owner asks for in an earlier session) stops matching the docs, raise it at the start of the session with the owner, not after building it.
 
 ## 4. Soft Rules
 
@@ -94,7 +98,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 ```text
 1. Read requirements  →  Obsidian notes + Docu SRS/SDD
-2. Confirm applicability (include the Answer Key Format)
+2. Confirm applicability (include the Answer Key Format); **drift vs docs/stack → stop and warn the owner first** (Hard Rule 13)
 3. Implement (backend → AI/OMR → web → mobile)
 4. Test (accuracy, timing, RBAC, privacy)
 5. Update documentation (SRS/SDD/Obsidian)

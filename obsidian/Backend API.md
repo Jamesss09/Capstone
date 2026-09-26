@@ -13,7 +13,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 > [!info] Phase 1 — Laravel 12 + MySQL (Docker) + Sanctum
 > Base URL (dev): `http://127.0.0.1:8000/api`
-> Web frontend (Phase 3): `http://127.0.0.1:5173` (`npm run dev` in `frontend/`)
+> Web frontend (Phase 3): `http://localhost:5174` (`npm run dev` in `frontend/`)
 
 ---
 
@@ -38,6 +38,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | GET/POST/PUT | `/settings` | system settings — the admin UI's **Appearance** toggle upserts a `theme` key (light/dark); every change is audit-logged (`CREATE_SETTING` / `UPDATE_SETTING` / `DELETE_SETTING`) |
 | GET | `/audit-logs` | paginated audit trail (50/page; filters `action`, `user_id`; newest first; each row includes the acting user) |
 | GET | `/dashboard` | stats + recent activity |
+| GET | `/dashboard/activity` | **live System Activity feed** (own endpoint so it never gates the `/dashboard` payload). Latest 10 audit logs, **answer-key actions only** — `CREATE_ANSWER_KEY` · `UPDATE_ANSWER_KEY` · `ACTIVATE_ANSWER_KEY` · `DEACTIVATE_ANSWER_KEY` · `DELETE_ANSWER_KEY` (no general audit trail) — from **active users only** (`is_active`), with the acting user joined |
 
 ## Staff + Admin
 | Method | Endpoint | Notes |

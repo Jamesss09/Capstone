@@ -31,7 +31,6 @@ class DashboardController extends Controller
                 'applicant:id,applicant_name',
                 'answerKey:id,exam_title,passing_score',
             ])->latest()->limit(5)->get(),
-            'recent_activities' => \App\Models\AuditLog::with('user:id,full_name')->latest()->limit(10)->get(),
         ]);
     }
 

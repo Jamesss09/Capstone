@@ -6,25 +6,29 @@ import {
   Activity,
   FileSearch,
   RefreshCw,
+  X,
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo-256.png' // TMC seal
 import { FeedRowSkeleton, StatCardSkeleton, TableSkeleton } from '../components/Skeleton'
 
-/** How often the dashboard re-fetches stats + activity (live feed) */
-const POLL_MS = 5000
+/** How often the live System Activity feed re-fetches */
+const POLL_MS = 15000
 
-// Session cache so revisits paint instantly from the last payload, then
-// refresh silently in the background. 30s TTL stops it from going stale.
-const CACHE_KEY = 'codenexus:dashboard:v1'
+// Stats/results cache so every visit paints instantly from the last payload,
+// then refreshes silently in the background. 5-min TTL; localStorage (not
+// sessionStorage) survives tab closes, so even a fresh tab shows real data
+// immediately. The activity feed is NOT cached — it's live and always fresh.
+const CACHE_KEY = 'codenexus:dashboard:v2'
+const CACHE_TTL_MS = 5 * 60 * 1000
 
 function readCache() {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY)
+    const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
     const { at, data } = JSON.parse(raw)
-    if (!data || Date.now() - at > 30000) return null
+    if (!data || Date.now() - at > CACHE_TTL_MS) return null
     return data
   } catch {
     return null
@@ -156,19 +160,26 @@ export default function Dashboard() {
     cached ?? { applicant_total: 0, sheets_scanned_today: 0, pass_rate_percent: null },
   )
   const [results, setResults] = useState(cached?.recent_results ?? []) // recent scoring activity rows
-  const [activities, setActivities] = useState(cached?.recent_activities ?? []) // live system activity feed
+  const [activities, setActivities] = useState([]) // live System Activity feed
   const [loading, setLoading] = useState(!cached)
   const [refreshing, setRefreshing] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState(() => (cached ? new Date() : null))
+  const [feedLoading, setFeedLoading] = useState(true)
+  const [feedLastUpdated, setFeedLastUpdated] = useState(null)
+  const [feedCleared, setFeedCleared] = useState(false)
   const [now, setNow] = useState(Date.now()) // rolling ticker for relative times
 
-  // Guard against setting state after unmount (interval polls + manual refresh)
+  // StrictMode-safe unmount guard. StrictMode simulates mount → unmount →
+  // remount in dev (runs each effect, its cleanup, then the effect again),
+  // so the ref must be re-set to true on every effect run — otherwise the
+  // first fetch's response is discarded and the page never finishes loading.
   const mountedRef = useRef(true)
-  // Skip a fetch when one is already in flight (StrictMode double-mount in
-  // dev, or a poll overlapping a manual refresh). The dev backend is
-  // single-threaded, so duplicate requests just queue and slow the page.
-  const inflightRef = useRef(false)
+  // Skip a fetch when one is already in flight (StrictMode double-mount, or a
+  // poll overlapping a manual refresh). The dev backend is single-threaded,
+  // so duplicate requests just queue and slow the page.
+  const inflightRef = useRef(false) // stats fetch
+  const feedInflightRef = useRef(false) // activity feed fetch
   useEffect(() => {
+    mountedRef.current = true
     return () => {
       mountedRef.current = false
     }
@@ -183,10 +194,8 @@ export default function Dashboard() {
       if (!mountedRef.current) return
       setStats(data)
       setResults(data.recent_results ?? [])
-      setActivities(data.recent_activities ?? [])
-      setLastUpdated(new Date())
       try {
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data }))
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data }))
       } catch {
         /* storage unavailable — page still works */
       }
@@ -201,10 +210,51 @@ export default function Dashboard() {
     }
   }
 
-  // Initial load + polling so the stats and activity feed stay live
+  const loadActivity = async () => {
+    if (feedInflightRef.current) return
+    feedInflightRef.current = true
+    try {
+      const data = await api('/dashboard/activity', { token })
+      if (!mountedRef.current) return
+      setActivities(data ?? [])
+      setFeedLastUpdated(new Date())
+      setFeedCleared(false)
+    } catch {
+      // Backend unreachable — keep whatever we have
+    } finally {
+      feedInflightRef.current = false
+      if (mountedRef.current) setFeedLoading(false)
+    }
+  }
+
+  // Initial load: stats/results + a first feed grab. When the tab regains
+  // focus, refresh both. This runs the page's critical path on /dashboard
+  // alone — the feed is its own request and never blocks the paint.
   useEffect(() => {
     load()
-    const pollId = setInterval(() => load(false), POLL_MS)
+    loadActivity()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        setNow(Date.now())
+        load()
+        loadActivity()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  // The System Activity feed is the dashboard's only "live" piece, so only it
+  // polls — paused while the tab is hidden so background tabs can't pile
+  // requests onto the single-threaded dev server.
+  useEffect(() => {
+    const pollId = setInterval(() => {
+      if (document.visibilityState === 'hidden') return
+      loadActivity()
+    }, POLL_MS)
     return () => clearInterval(pollId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
@@ -251,6 +301,17 @@ export default function Dashboard() {
           <header className="px-5 py-4 border-b border-[var(--line-soft)] flex items-center gap-2">
             <Activity size={16} className="text-[#348BDA]" />
             <h2 className="text-sm font-bold text-[var(--ink)]">Recent Scoring Activity</h2>
+            <button
+              onClick={() => {
+                load(true)
+                loadActivity()
+              }}
+              disabled={refreshing}
+              title="Refresh now"
+              className="ml-auto rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            </button>
           </header>
 
           {loading ? (
@@ -305,16 +366,20 @@ export default function Dashboard() {
               Live
             </span>
             <button
-              onClick={() => load(true)}
-              disabled={refreshing}
-              title="Refresh now"
-              className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors disabled:opacity-50"
+              type="button"
+              onClick={() => {
+                setActivities([])
+                setFeedCleared(true)
+              }}
+              title="Clear feed"
+              aria-label="Clear feed"
+              className="rounded-md p-1 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors"
             >
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              <X size={14} />
             </button>
           </header>
 
-          {loading ? (
+          {feedLoading ? (
             <div className="divide-y divide-[var(--line-soft)]">
               <FeedRowSkeleton />
               <FeedRowSkeleton />
@@ -323,12 +388,21 @@ export default function Dashboard() {
               <FeedRowSkeleton />
             </div>
           ) : activities.length === 0 ? (
-            <div className="py-10 text-center px-6">
-              <Activity size={32} className="mx-auto text-slate-300" />
-              <p className="mt-3 text-sm text-[var(--muted)]">
-                No system activity yet. Actions by administrators will appear here.
-              </p>
-            </div>
+            feedCleared ? (
+              <div className="py-10 text-center px-6">
+                <X size={32} className="mx-auto text-slate-300" />
+                <p className="mt-3 text-sm text-[var(--muted)]">
+                  Feed cleared — new answer key activity will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="py-10 text-center px-6">
+                <Activity size={32} className="mx-auto text-slate-300" />
+                <p className="mt-3 text-sm text-[var(--muted)]">
+                  No answer key activity yet. Created, updated, or deleted keys will appear here.
+                </p>
+              </div>
+            )
           ) : (
             <>
               <ul className="divide-y divide-[var(--line-soft)]">
@@ -352,9 +426,9 @@ export default function Dashboard() {
                 })}
               </ul>
               <div className="px-5 py-2.5 border-t border-[var(--line-soft)] text-[11px] text-[var(--muted-soft)]">
-                {lastUpdated
-                  ? `Updated ${timeAgo(lastUpdated.toISOString(), now)}`
-                  : 'Auto-refreshes every 5s'}
+                {feedLastUpdated
+                  ? `Updated ${timeAgo(feedLastUpdated.toISOString(), now)}`
+                  : 'Auto-refreshes every 15s'}
               </div>
             </>
           )}

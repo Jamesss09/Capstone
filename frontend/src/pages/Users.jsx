@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, KeyRound, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, KeyRound, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { TableSkeleton } from '../components/Skeleton'
+
 
 /* ------------------------------------------------------------------ */
 /* Badges                                                              */
@@ -89,6 +90,8 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [fieldError, setFieldError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   function validate() {
     if (!fullName.trim() || !username.trim()) {
@@ -225,25 +228,47 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
               <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                 {mode === 'new' ? 'Password' : 'New Password'}
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'new' ? 'Enter password' : 'Leave blank to keep current password'}
-                className={inputCls}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'new' ? 'Enter password' : 'Leave blank to keep current password'}
+                  className={`${inputCls} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-[var(--muted-soft)] hover:text-[#348BDA] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                 Confirm Password
               </label>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder={mode === 'new' ? 'Confirm password' : 'Confirm new password'}
-                className={inputCls}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  placeholder={mode === 'new' ? 'Confirm password' : 'Confirm new password'}
+                  className={`${inputCls} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  title={showConfirm ? 'Hide password' : 'Show password'}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-[var(--muted-soft)] hover:text-[#348BDA] transition-colors"
+                >
+                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
           </div>
           {password && <StrengthMeter password={password} />}

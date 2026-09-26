@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AnswerKeyController;
 use App\Http\Controllers\Api\ApplicantController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExaminationFolderController;
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('applicants', ApplicantController::class);
     Route::apiResource('results', ResultController::class)->only(['index', 'show']);
 
-    // Dashboard stats (Admin)
+    // Dashboard stats + live activity feed (Admin)
     Route::get('dashboard', DashboardController::class)->middleware('role:Administrator');
+    Route::get('dashboard/activity', ActivityController::class)->middleware('role:Administrator');
 });
