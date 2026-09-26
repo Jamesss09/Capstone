@@ -24,6 +24,10 @@
   --fill-strong: #e2e8f0; /* bars, inactive chips (slate-100/200) */
   --ok: #d1fae5; /* success chip fill (emerald-100) */
   --ok-text: #047857; /* success chip text (emerald-700) */
+  --warn: #fef3c7; /* update chip fill (amber-100) */
+  --warn-text: #b45309; /* update chip text (amber-700) */
+  --danger: #fee2e2; /* delete chip fill (red-100) */
+  --danger-text: #b91c1c; /* delete chip text (red-700) */
 }
 
 .dark {
@@ -41,6 +45,10 @@
   --fill-strong: #2c3b5e;
   --ok: rgba(16, 185, 129, 0.16);
   --ok-text: #34d399;
+  --warn: rgba(245, 158, 11, 0.16);
+  --warn-text: #fbbf24;
+  --danger: rgba(239, 68, 68, 0.16);
+  --danger-text: #f87171;
 }
 
 /* Avoid a white flash behind fixed overlays / overscroll in dark mode */

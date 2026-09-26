@@ -6,7 +6,7 @@ import AnswerKeys from './pages/AnswerKeys'
 import ExaminationResults from './pages/ExaminationResults'
 import Users from './pages/Users'
 import Settings from './pages/Settings'
-import ComingSoon from './pages/ComingSoon'
+import AuditLogs from './pages/AuditLogs'
 import { useAuth } from './context/AuthContext'
 
 /**
@@ -37,7 +37,7 @@ function AppRoutes() {
         <Route path="/results/:folderId" element={<ExaminationResults />} />
         <Route path="/users" element={<Users />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/audit-logs" element={<ComingSoon title="Audit Logs" />} />
+        <Route path="/audit-logs" element={<AuditLogs />} />
       </Route>
 
       {/* Anything else → root (which shows login or redirects to dashboard) */}

@@ -72,7 +72,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Login (**admin-only on web**) — prototype-matched; `admin/admin123`. Staff accounts are rejected on the web ("Staff accounts sign in via the mobile app."). Staff login uses the same design in the mobile app (Phase 4).
 - [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`.
 - [x] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
-- [ ] Admin: Audit Logs
+- [x] Admin: Audit Logs — "Recent Activity" card, color-coded action chips, paginated 50 (Prev/Next), refresh; empty state matches prototype
 - [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
 - [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
 - [x] Admin: Settings Mgmt — **Appearance Light/Dark** toggle (Fig 19.0); persists `theme` to `tbl_settings` (+ localStorage mirror) and applies a **full dark theme** across the admin UI (CSS-variable tokens in `index.css`, `.dark` class on `<html>`; sidebar stays navy). Settings changes are audit-logged (`CREATE_SETTING`/`UPDATE_SETTING`/`DELETE_SETTING`).

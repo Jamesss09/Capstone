@@ -36,7 +36,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | POST | `/answer-keys/{key}/deactivate` | toggle key off (idempotent) |
 | GET/POST/PUT/DELETE | `/folders` | examination folders; index also returns `applicants_count` + `applicants_result_count` |
 | GET/POST/PUT | `/settings` | system settings — the admin UI's **Appearance** toggle upserts a `theme` key (light/dark); every change is audit-logged (`CREATE_SETTING` / `UPDATE_SETTING` / `DELETE_SETTING`) |
-| GET | `/audit-logs` | paginated audit trail |
+| GET | `/audit-logs` | paginated audit trail (50/page; filters `action`, `user_id`; newest first; each row includes the acting user) |
 | GET | `/dashboard` | stats + recent activity |
 
 ## Staff + Admin

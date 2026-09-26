@@ -40,7 +40,7 @@ const PAGE_META = {
   },
   '/audit-logs': {
     title: 'Audit Logs',
-    subtitle: 'Review the system activity trail.',
+    subtitle: 'Track system activity and user actions.',
   },
 }
 
@@ -185,7 +185,7 @@ export default function AdminLayout() {
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
                 <LogOut size={18} className="text-red-500" />
               </div>
-              <h2 className="text-base font-bold text-[var(--ink)]">Log out of Code Nexus?</h2>
+              <h2 className="text-base font-bold text-[var(--ink)]">Sure You Want To Sign Out??</h2>
             </div>
             <p className="mt-2 text-sm text-[var(--muted)]">
               Are you sure you want to sign out? You'll need to sign in again to continue.
