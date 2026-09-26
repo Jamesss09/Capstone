@@ -13,6 +13,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { CardSkeleton, TableSkeleton } from '../components/Skeleton'
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -23,10 +24,6 @@ const STUDENT_TYPES = ['NEW', 'TRANSFEREE', 'OLD', 'RETURNEE']
 
 // Courses offered at TMC (fixed filter list)
 const COURSES = ['BSIT', 'BSCRIM', 'BSED', 'BSOA', 'BEED', 'BAPOLSCI', 'BACOM']
-
-function plural(n, word) {
-  return `${n} ${word}${n === 1 ? '' : 's'}`
-}
 
 // Display code like the prototype: EXM-0001
 function examId(id) {
@@ -544,7 +541,7 @@ function FolderResults({ folderId }) {
       )}
 
       {loading ? (
-        <p className="text-sm text-[var(--muted)]">Loading folder results…</p>
+        <TableSkeleton cols={6} rows={8} />
       ) : (
         <>
           {/* Filter bar */}
@@ -778,7 +775,11 @@ function FolderGrid() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[var(--muted)]">Loading school year folders…</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
       ) : folders.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <FolderOpen size={38} className="mx-auto text-[#85B3DA]" />

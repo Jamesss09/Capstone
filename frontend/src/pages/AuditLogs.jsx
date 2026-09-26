@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { TableSkeleton } from '../components/Skeleton'
 
 /** Chip colors for an action code — grouped by intent (SDD Table 6.0). */
 function actionStyle(action) {
@@ -107,7 +108,7 @@ export default function AuditLogs() {
         </div>
 
         {loading ? (
-          <p className="px-5 py-8 text-sm text-[var(--muted)]">Loading activity…</p>
+          <TableSkeleton cols={5} rows={8} />
         ) : logs.length === 0 ? (
           /* Empty state — matches Audit_Logs_prototype */
           <div className="px-8 py-16 text-center">

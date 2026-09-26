@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, KeyRound, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { TableSkeleton } from '../components/Skeleton'
 
 /* ------------------------------------------------------------------ */
 /* Badges                                                              */
@@ -411,7 +412,7 @@ export default function Users() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[var(--muted)]">Loading users…</p>
+        <TableSkeleton cols={5} rows={6} />
       ) : users.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <KeyRound size={38} className="mx-auto text-[#85B3DA]" />

@@ -71,8 +71,9 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Phase 3 – **Answer Key Mgmt** (card grid, per-section builder, JSON/CSV import, Set as Active/Inactive toggle, delete — one-active enforced)
 - [x] Phase 3 – **Exam Results Mgmt** (school-year folder launcher → per-folder results table, filters incl. fixed course list, View detail, CSV export)
 - [x] Phase 3 – **User Mgmt** (table: NAME · USERNAME · ROLE · STATUS · ACTION, Add/Edit modals, delete with self-delete guard)
+- [x] Phase 3 – **Settings Mgmt** (Appearance Light/Dark toggle — full dark theme via CSS tokens) & **Audit Logs** (color-coded chips, paginated 50)
+- [x] Phase 3 – **UI polish** (skeleton loading across admin screens; TMC-seal favicon + system-title browser tab)
 - [ ] Phase 2 – AI/OMR Engine — ⏸️ **deferred**: user builds own lightweight model + dataset first
-- [ ] Phase 3 – Web Admin (remaining screens: Settings, Audit Logs)
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation

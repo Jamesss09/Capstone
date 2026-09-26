@@ -10,6 +10,7 @@ import {
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo.png' // TMC seal
+import { FeedRowSkeleton, StatCardSkeleton, TableSkeleton } from '../components/Skeleton'
 
 /** How often the dashboard re-fetches stats + activity (live feed) */
 const POLL_MS = 5000
@@ -163,8 +164,8 @@ export default function Dashboard() {
       setLastUpdated(new Date())
     } catch {
       // Backend unreachable / no data yet — keep whatever we have
-    } finally {
-      if (!mountedRef.current) return
+    }
+    if (mountedRef.current) {
       setLoading(false)
       setRefreshing(false)
     }
@@ -188,22 +189,29 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* KPI stat cards */}
       <div className="grid grid-cols-3 xl:grid-cols-4 gap-5">
-        <StatCard
-          icon={UsersRound}
-          label="Total Applicants"
-          value={loading ? '—' : stats.applicant_total}
-        />
-        <StatCard
-          icon={ScanLine}
-          label="Sheets Scanned Today"
-          value={loading ? '—' : stats.sheets_scanned_today}
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Passing Rate"
-          value={loading ? '—' : `${stats.pass_rate_percent ?? 0}%`}
-        />
-        <CollegeCard />
+        {loading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard icon={UsersRound} label="Total Applicants" value={stats.applicant_total} />
+            <StatCard
+              icon={ScanLine}
+              label="Sheets Scanned Today"
+              value={stats.sheets_scanned_today}
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Passing Rate"
+              value={`${stats.pass_rate_percent ?? 0}%`}
+            />
+            <CollegeCard />
+          </>
+        )}
       </div>
 
       {/* Recent scoring activity + live system feed */}
@@ -215,7 +223,9 @@ export default function Dashboard() {
             <h2 className="text-sm font-bold text-[var(--ink)]">Recent Scoring Activity</h2>
           </header>
 
-          {results.length > 0 ? (
+          {loading ? (
+            <TableSkeleton cols={4} rows={5} />
+          ) : results.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-wider text-[var(--muted)] bg-[var(--fill)]">
@@ -275,7 +285,13 @@ export default function Dashboard() {
           </header>
 
           {loading ? (
-            <p className="px-5 py-8 text-sm text-[var(--muted)]">Loading activity…</p>
+            <div className="divide-y divide-[var(--line-soft)]">
+              <FeedRowSkeleton />
+              <FeedRowSkeleton />
+              <FeedRowSkeleton />
+              <FeedRowSkeleton />
+              <FeedRowSkeleton />
+            </div>
           ) : activities.length === 0 ? (
             <div className="py-10 text-center px-6">
               <Activity size={32} className="mx-auto text-slate-300" />

@@ -20,6 +20,8 @@ export function applyTheme(mode) {
   } catch {
     /* localStorage unavailable — theme still applies for this session */
   }
+  // Notify same-tab consumers (useTheme) so state stays in sync
+  window.dispatchEvent(new Event(STORAGE_KEY))
   return next
 }
 
@@ -32,7 +34,15 @@ export function initTheme() {
 export function useTheme() {
   const [mode, setMode] = useState(getStoredTheme)
   useEffect(() => {
-    setMode(getStoredTheme())
+    // Re-sync when the theme changes in another tab ('storage') or in this
+    // tab via applyTheme() (custom event).
+    const sync = () => setMode(getStoredTheme())
+    window.addEventListener('storage', sync)
+    window.addEventListener(STORAGE_KEY, sync)
+    return () => {
+      window.removeEventListener('storage', sync)
+      window.removeEventListener(STORAGE_KEY, sync)
+    }
   }, [])
   const set = useCallback((next) => setMode(applyTheme(next)), [])
   return [mode, set]

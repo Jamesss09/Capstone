@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { CardSkeleton, FormSkeleton } from '../components/Skeleton'
 
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                 */
@@ -545,7 +546,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
         </div>
 
         {!ready ? (
-          <div className="p-10 text-center text-sm text-[var(--muted)]">Loading answer key…</div>
+          <FormSkeleton rows={4} />
         ) : (
           <>
             {/* Body */}
@@ -942,7 +943,10 @@ export default function AnswerKeys() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[var(--muted)]">Loading answer keys…</p>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
       ) : keys.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <KeyRound size={38} className="mx-auto text-[#85B3DA]" />

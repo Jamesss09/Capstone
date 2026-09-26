@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
 }
 
 // Custom hook so pages can write:  const { user, login } = useAuth()
+// oxlint-disable-next-line only-export-components -- hook shares this file with the provider for convenience
 export function useAuth() {
   return useContext(AuthContext)
 }
