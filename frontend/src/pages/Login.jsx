@@ -156,7 +156,7 @@ export default function Login() {
 
         {/* Card footer */}
         <p className="text-center text-xs text-[#6B6E76]">
-          TMC Entrance Exam Scoring System • Code Nexus
+          • Code Nexus
         </p>
       </form>
 
@@ -164,7 +164,7 @@ export default function Login() {
       <p className="mt-4 text-center text-sm text-[#6B6E76]">
         Trinidad Municipal College
         <br />
-        Entrance Examination Management System
+        Entrance Exam: Answer Sheet Recognition & Scoring System
       </p>
     </div>
   )

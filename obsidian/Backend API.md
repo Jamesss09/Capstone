@@ -61,6 +61,11 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - Passwords stored via bcrypt (`password_hash`)
 - MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus`/`nexus_pass`, root `root_pass`)
 
+## Error handling (API-first)
+- Unauthenticated `/api/*` → **401** JSON `{"message":"Unauthenticated."}` — no redirect (fixed the `Route [login] not defined` 500 for clients without a JSON `Accept` header)
+- Validation failures on `/api/*` → **422** JSON with `message` + `errors`, regardless of client `Accept` header
+- Health check: `GET /up` → 200 when healthy (Laravel default, replaces the older `/health`)
+
 ## Seed accounts (dev)
 | Username | Password | Role |
 | --- | --- | --- |
