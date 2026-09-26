@@ -74,7 +74,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
 - [ ] Admin: Audit Logs
 - [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
-- [ ] Admin: User/Settings Mgmt (Add/Edit modals)
+- [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
+- [ ] Admin: Settings Mgmt
 - [x] Result table with Passed/Failed status + CSV export (PDF export deferred)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 

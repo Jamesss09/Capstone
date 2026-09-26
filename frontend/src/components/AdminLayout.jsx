@@ -30,7 +30,7 @@ const PAGE_META = {
   },
   '/users': {
     title: 'User Management',
-    subtitle: 'Manage administrator and staff accounts and roles.',
+    subtitle: 'Manage system users and staff accounts.',
   },
   '/settings': {
     title: 'Settings',

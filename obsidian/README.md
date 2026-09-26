@@ -70,8 +70,9 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Phase 3 – **Admin Dashboard** (KPI cards, Recent Scoring Activity, **live System Activity feed** from audit logs)
 - [x] Phase 3 – **Answer Key Mgmt** (card grid, per-section builder, JSON/CSV import, Set as Active/Inactive toggle, delete — one-active enforced)
 - [x] Phase 3 – **Exam Results Mgmt** (school-year folder launcher → per-folder results table, filters incl. fixed course list, View detail, CSV export)
+- [x] Phase 3 – **User Mgmt** (table: NAME · USERNAME · ROLE · STATUS · ACTION, Add/Edit modals, delete with self-delete guard)
 - [ ] Phase 2 – AI/OMR Engine — ⏸️ **deferred**: user builds own lightweight model + dataset first
-- [ ] Phase 3 – Web Admin (remaining screens: Users, Settings, Audit Logs)
+- [ ] Phase 3 – Web Admin (remaining screens: Settings, Audit Logs)
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation
@@ -81,6 +82,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 ## Latest Session Recap (2026-09-23)
 
 **Done (committed `1667d36` + tweak `85b6608`, pushed to `origin/develop`):**
+- **User Mgmt** (`frontend/src/pages/Users.jsx`, route `/users`): table NAME · USERNAME · ROLE (admin/staff badge) · STATUS (ACTIVE/INACTIVE) · ACTION (Edit/Delete); **Add New User** modal (Full Name, Username+Role, Password+Confirm, ACTIVE/INACTIVE segmented) + prefilled **Edit User** modal (New Password blank = keep current); delete confirm with **self-delete blocked** (button disabled + server 422); email auto-derived as `username@tmc.local` (prototype has no email field, schema requires it)
 - **Exam Results Mgmt** (`frontend/src/pages/ExaminationResults.jsx`, routes `/results` + `/results/{folderId}`):
   - **Folder launcher** — school-year folder cards (Current 🟢/Archived badges, result + applicant counts, "Open Folder"), gold "+ Add New SY"
   - **Add New School Year modal** — `SY YYYY-YYYY` validation (regex also enforced by backend), Current/Archived radio, optional description; `+ Add New SY` + `+ New School Year` both open it
@@ -94,7 +96,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 
 **Next session options:**
 1. Audit Logs page (backend `GET /audit-logs` ready)
-2. Users / Settings Mgmt
+2. Settings page
 3. PDF export for results (CSV done)
 4. Phase 4 mobile scanner / Phase 2 OMR (model pending)
 

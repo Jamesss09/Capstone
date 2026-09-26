@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "AI - Implementation Plan.md",
+                "file": "Overview.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AI - Implementation Plan"
+              "title": "Overview"
             }
           }
         ]
@@ -187,6 +187,9 @@
   },
   "active": "ef501671778e5eb1",
   "lastOpenFiles": [
+    "AI - Implementation Plan.md",
+    "Untitled.md",
+    "Untitled.base",
     "README.md",
     "UI Prototypes.md",
     "Tech Stack.md",
@@ -194,11 +197,9 @@
     "Backend API.md",
     "Software Requirement Specification (SRS).md",
     "Overview.md",
-    "AI - Implementation Plan.md",
     "Answer Key Format.md",
     "Software Design Description (SDD).md",
     "AI - Task and Rules.md",
-    "Welcome.md",
-    "Untitled.md"
+    "Welcome.md"
   ]
 }

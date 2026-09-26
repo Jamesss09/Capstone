@@ -37,9 +37,9 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | `Examination_Result_Prototype.png` | Fig 14.0 Result – Folders | ✅ **Implemented** (Phase 3) | `frontend/src/pages/ExaminationResults.jsx` (`FolderGrid`) |
 | `New_SY_Prototype.png` | Fig 15.0 Add Folder / New School Year | ✅ **Implemented** (Phase 3) | "Add New School Year" modal — SY `YYYY-YYYY` validation, Current/Archived radio, description |
 | `Examination_Result_Table_Prototype.png` | Fig 16.0 Result – Table | ✅ **Implemented** (Phase 3) | `FolderResults` — filter bar (search/name-ID, course, student type, status), folder header line, table, CSV export, per-result detail |
-| `User_Management_Prototype.png` | Fig 17.0 User Mgmt | Phase 3 |
-| `Add_New_User_Prototype.png` | Fig 18.0 Add User | Phase 3 |
-| `Edit_user_Prototype.png` | 🆕 not in SRS | Phase 3 |
+| `User_Management_Prototype.png` | Fig 17.0 User Mgmt | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Users.jsx` — table NAME · USERNAME · ROLE · STATUS · ACTION, Add New User (+ email derived as `username@tmc.local`), self-delete blocked |
+| `Add_New_User_Prototype.png` | Fig 18.0 Add User | ✅ **Implemented** (Phase 3) | modal — Full Name, Username + Role, Password + Confirm, ACTIVE/INACTIVE, gold Create User |
+| `Edit_user_Prototype.png` | 🆕 not in SRS | ✅ **Implemented** (Phase 3) | prefilled Edit modal — New Password blank keeps current password, Save Changes |
 | `Settings_Prototype.png` | Fig 19.0 Settings | Phase 3 |
 | `Audit_Logs_prototype.png` | 🆕 not in SRS (matches `tbl_audit_logs`) | Phase 3 |
 
