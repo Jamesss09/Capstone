@@ -80,6 +80,23 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 
 ---
 
+## Latest Session Recap (2026-09-26)
+
+**Docker backend runtime fixed — it had been silently serving wrong/old code:**
+- `docker-compose.yml` volume bug: `../backend` / `../omr` resolve *relative to the compose file*, landing on `C:\Users\ACER\backend` + `C:\Users\ACER\omr` — stale sibling folders outside the repo. The container was running a pre-API copy (no `routes/api.php`) → every `/api/*` call fell through to a Laravel 404. Fixed to `./backend` / `./omr` (verified via `docker inspect` mount source + container route listing).
+- `docker/backend/Dockerfile` gap: stock `php:8.2-apache` serves the repo root with `AllowOverride None`, so Laravel was never executed by Apache. Added `DocumentRoot /var/www/html/public`, `<Directory>` scoping, and `AllowOverride All`. Rebuilt; `apachectl -t` → Syntax OK.
+- Post-fix, the container serves the real app: `POST /api/login → 200` and dashboard `200` confirmed in the Apache access log.
+
+**Performance verdict (measured 2026-09-26, same code + same MySQL):**
+- Container: login **27.1 s**, dashboard **8.9–11.4 s** — every PHP request boots Laravel (~2,000 file reads) across the Windows ↔ WSL2 file bridge (9p/gRPC-FUSE).
+- `php artisan serve` (XAMPP PHP, native NTFS): login **1.3 s**, dashboard **0.8–1.5 s**.
+- **Decision:** `php artisan serve` remains the dev runtime. The container is now *deploy-correct* (matches a Linux prod host where bind mounts are native and fast) — use it for Phase 6 deployment, not local dev.
+- Backend container left **stopped** (`docker compose start backend` brings it back); MySQL stays up.
+
+**Staged for owner commit:** the frontend perf round (session-cache dashboard, in-flight dedupe, theme-sync-once, TMC-seal favicon/logo, index.html) **+** the Docker fixes above.
+
+---
+
 ## Latest Session Recap (2026-09-23)
 
 **Done (committed `1667d36` + tweak `85b6608`, pushed to `origin/develop`):**
@@ -93,7 +110,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - **Tweak (`85b6608`)**: removed the two "Add New SY / New School Year" buttons from the folder table view (create SY from launcher only); "All Courses" filter is now the fixed list **BSIT · BSCRIM · BSED · BSOA · BEED · BAPOLSCI · BACOM**
 - Earlier this day: Answer Key Mgmt + live dashboard feed (`8ff95cf`)
 
-**Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`).
+**Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`). Backend Docker container = deploy-only (correct after 2026-09-26 fix, but ~10× slower over Windows bind mounts).
 
 **Next session options:**
 1. Audit Logs page (backend `GET /audit-logs` ready)

@@ -23,7 +23,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
 - [ ] Define env configs (`dev`, `staging`, `prod`)
 - [x] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
-- **Deliverable:** `docker compose up` runs the full skeleton
+- **Deliverable:** `docker compose up` runs the full skeleton — *2026-09-26: fixed (compose mount paths + Apache `public/` docroot) so it now serves the real app; still ~10× slower over Windows bind mounts, so dev backend = `php artisan serve` (see [[README]] recap)*
 
 ---
 
@@ -77,7 +77,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
 - [x] Admin: Settings Mgmt — **Appearance Light/Dark** toggle (Fig 19.0); persists `theme` to `tbl_settings` (+ localStorage mirror) and applies a **full dark theme** across the admin UI (CSS-variable tokens in `index.css`, `.dark` class on `<html>`; sidebar stays navy). Settings changes are audit-logged (`CREATE_SETTING`/`UPDATE_SETTING`/`DELETE_SETTING`).
 - [x] Result table with Passed/Failed status + **CSV export** and **PDF export** (client-side jsPDF + autotable, honors active filters)
-- [x] UI polish — **skeleton loading** on all admin data screens (`frontend/src/components/Skeleton.jsx`: pulsing StatCard / Card / Table / Feed / Form placeholders replacing "Loading…" text while data fetches); browser tab title **"TMC Entrance Examination: Answer Sheet Recognition and Scoring System"** + **TMC-seal favicon** (`index.html` → `src/assets/logo.png`)
+- [x] UI polish — **skeleton loading** on all admin data screens (`frontend/src/components/Skeleton.jsx`: pulsing StatCard / Card / Table / Feed / Form placeholders replacing "Loading…" text while data fetches); browser tab title **"TMC Entrance Examination: Answer Sheet Recognition and Scoring System"** + **TMC-seal favicon** (`index.html` → `public/favicon.png`, 26 KB — seal also slimmed to `logo-256.png` 84 KB, was 885 KB)
+- [x] Dashboard **load performance** — session cache (instant remounts, 30s TTL, silent background refresh), in-flight dedupe (kills the StrictMode double-fetch), theme row fetched from backend once per session instead of every mount (dev backend is single-threaded `php artisan serve`; `config:cache` tried → no gain, reverted)
 - **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---

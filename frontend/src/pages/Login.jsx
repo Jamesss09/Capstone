@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, Lock, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import logo from '../assets/logo.png' // TMC seal (Prototype/logo/Logo.png)
+import logo from '../assets/logo-256.png' // TMC seal (Prototype/logo/Logo.png)
 
 export default function Login() {
   const { login, logout } = useAuth()

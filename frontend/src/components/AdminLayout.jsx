@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api/client'
 import { applyTheme, getStoredTheme } from '../theme'
-import logo from '../assets/logo.png' // TMC seal
+import logo from '../assets/logo-256.png' // TMC seal
 
 // Title + subtitle per page, shown in the top header strip
 const PAGE_META = {
@@ -49,6 +49,9 @@ const baseLink =
 const activeLink = `${baseLink} bg-[#34363E] text-white`
 const idleLink = `${baseLink} text-slate-300 hover:bg-white/5 hover:text-white`
 
+// Backend theme row is fetched at most once per session (see effect below)
+let themeSynced = false
+
 export default function AdminLayout() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
@@ -56,14 +59,16 @@ export default function AdminLayout() {
   const meta = PAGE_META[pathname] ?? { title: 'Admin', subtitle: '' }
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  // Keep every admin in sync with the system-wide theme setting
-  // (e.g. when another admin changed it). localStorage keeps it instant;
-  // the backend row is the source of truth.
+  // Sync the system-wide theme with the backend ONCE per session.
+  // Re-requesting it on every route change queues a PHP call behind the
+  // page's own fetches (the dev backend is single-threaded) for little
+  // gain — localStorage already applies the theme instantly.
   useEffect(() => {
-    let cancelled = false
+    if (themeSynced) return
+    themeSynced = true
     api('/settings', { token })
       .then((rows) => {
-        if (cancelled || !Array.isArray(rows)) return
+        if (!Array.isArray(rows)) return
         const theme = rows.find((r) => r.setting_key === 'theme')
         if (theme && theme.setting_value !== getStoredTheme()) {
           applyTheme(theme.setting_value)
@@ -72,9 +77,6 @@ export default function AdminLayout() {
       .catch(() => {
         /* silent — the stored theme still applies */
       })
-    return () => {
-      cancelled = true
-    }
   }, [token])
 
   async function confirmLogout() {

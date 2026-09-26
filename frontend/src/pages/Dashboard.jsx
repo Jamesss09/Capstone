@@ -9,11 +9,27 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import logo from '../assets/logo.png' // TMC seal
+import logo from '../assets/logo-256.png' // TMC seal
 import { FeedRowSkeleton, StatCardSkeleton, TableSkeleton } from '../components/Skeleton'
 
 /** How often the dashboard re-fetches stats + activity (live feed) */
 const POLL_MS = 5000
+
+// Session cache so revisits paint instantly from the last payload, then
+// refresh silently in the background. 30s TTL stops it from going stale.
+const CACHE_KEY = 'codenexus:dashboard:v1'
+
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const { at, data } = JSON.parse(raw)
+    if (!data || Date.now() - at > 30000) return null
+    return data
+  } catch {
+    return null
+  }
+}
 
 /** Compact relative time — rolls live via the dashboard ticker */
 function timeAgo(iso, now) {
@@ -133,20 +149,25 @@ function StatusBadge({ status }) {
 export default function Dashboard() {
   const { token } = useAuth()
 
-  const [stats, setStats] = useState({
-    applicant_total: 0,
-    sheets_scanned_today: 0,
-    pass_rate_percent: null,
-  })
-  const [results, setResults] = useState([]) // recent scoring activity rows
-  const [activities, setActivities] = useState([]) // live system activity feed
-  const [loading, setLoading] = useState(true)
+  // Hydrate from the session cache (if fresh) so remounts paint instantly.
+  // loading stays false when cached, so the background refresh is silent.
+  const cached = useRef(readCache()).current
+  const [stats, setStats] = useState(
+    cached ?? { applicant_total: 0, sheets_scanned_today: 0, pass_rate_percent: null },
+  )
+  const [results, setResults] = useState(cached?.recent_results ?? []) // recent scoring activity rows
+  const [activities, setActivities] = useState(cached?.recent_activities ?? []) // live system activity feed
+  const [loading, setLoading] = useState(!cached)
   const [refreshing, setRefreshing] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(() => (cached ? new Date() : null))
   const [now, setNow] = useState(Date.now()) // rolling ticker for relative times
 
   // Guard against setting state after unmount (interval polls + manual refresh)
   const mountedRef = useRef(true)
+  // Skip a fetch when one is already in flight (StrictMode double-mount in
+  // dev, or a poll overlapping a manual refresh). The dev backend is
+  // single-threaded, so duplicate requests just queue and slow the page.
+  const inflightRef = useRef(false)
   useEffect(() => {
     return () => {
       mountedRef.current = false
@@ -155,6 +176,8 @@ export default function Dashboard() {
 
   const load = async (manual = false) => {
     if (manual) setRefreshing(true)
+    if (inflightRef.current) return // a request is already running — don't pile up
+    inflightRef.current = true
     try {
       const data = await api('/dashboard', { token })
       if (!mountedRef.current) return
@@ -162,12 +185,19 @@ export default function Dashboard() {
       setResults(data.recent_results ?? [])
       setActivities(data.recent_activities ?? [])
       setLastUpdated(new Date())
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data }))
+      } catch {
+        /* storage unavailable — page still works */
+      }
     } catch {
       // Backend unreachable / no data yet — keep whatever we have
-    }
-    if (mountedRef.current) {
-      setLoading(false)
-      setRefreshing(false)
+    } finally {
+      inflightRef.current = false
+      if (mountedRef.current) {
+        setLoading(false)
+        setRefreshing(false)
+      }
     }
   }
 
