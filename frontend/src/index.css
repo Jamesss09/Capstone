@@ -1,111 +1,57 @@
+@import "tailwindcss";
+
+/*
+ * Semantic color tokens for the admin dashboard.
+ * All surfaces reference these via bg-[var(--x)] / text-[var(--x)] /
+ * border-[var(--x)], so the whole UI flips by toggling the .dark class
+ * on <html> — no `dark:` variants needed anywhere.
+ *
+ * Light values mirror the prototype palette; dark values are brand-harmonized
+ * navy tints (sidebar #16233F stays constant and reads as a surface).
+ */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --bg: #f4f5f7; /* page background + header strip */
+  --card: #ffffff; /* cards, modals, tables */
+  --card-soft: #f8f7f1; /* translucent card fills (bg-white/40…80) */
+  --panel: #f4f2ea; /* brand beige — stat cards, section panels */
+  --field: #ffffff; /* form inputs */
+  --ink: #16233f; /* primary text */
+  --muted: #6b6e76; /* secondary text */
+  --muted-soft: #94a3b8; /* placeholder / hint text */
+  --line: #e2e8f0; /* borders (slate-200/300) */
+  --line-soft: #f1f5f9; /* light borders / dividers (slate-100) */
+  --fill: #f1f5f9; /* hover fills, table header (slate-50) */
+  --fill-strong: #e2e8f0; /* bars, inactive chips (slate-100/200) */
+  --ok: #d1fae5; /* success chip fill (emerald-100) */
+  --ok-text: #047857; /* success chip text (emerald-700) */
+  --warn: #fef3c7; /* update chip fill (amber-100) */
+  --warn-text: #b45309; /* update chip text (amber-700) */
+  --danger: #fee2e2; /* delete chip fill (red-100) */
+  --danger-text: #b91c1c; /* delete chip text (red-700) */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+.dark {
+  --bg: #0b1120;
+  --card: #182237;
+  --card-soft: #1f2b44;
+  --panel: #1f2b44;
+  --field: #141d30;
+  --ink: #e6eaf2;
+  --muted: #9aa7bf;
+  --muted-soft: #64748b;
+  --line: #2c3b5e;
+  --line-soft: #22304d;
+  --fill: #212e4a;
+  --fill-strong: #2c3b5e;
+  --ok: rgba(16, 185, 129, 0.16);
+  --ok-text: #34d399;
+  --warn: rgba(245, 158, 11, 0.16);
+  --warn-text: #fbbf24;
+  --danger: rgba(239, 68, 68, 0.16);
+  --danger-text: #f87171;
 }
 
-body {
-  margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Avoid a white flash behind fixed overlays / overscroll in dark mode */
+html {
+  background-color: var(--bg);
 }

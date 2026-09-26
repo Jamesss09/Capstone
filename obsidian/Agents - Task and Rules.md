@@ -28,6 +28,9 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 ## 2. Tasks per Agent
 
+> [!tip] Common task — ALL agents
+> At the end of every chat/session, **summarize and explain** to the owner what happened and what changed: files modified, commits made, decisions taken, tests run, and what's next. Use plain, easy-to-understand language.
+
 ### 2.1 Orchestrator
 - [ ] Keep a single source of truth: the Obsidian vault in `obsidian/`
 - [ ] Read the docs first (`Docu/*.docx`) before starting any task
@@ -72,6 +75,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 8. Single-page shaded answer sheets only; other formats rejected.
 9. Scoring engine must be **100% accurate**; bubble detection **≥95%**.
 10. A single sheet must score **within seconds**.
+11. **Summarize after every chat** — the agent must summarize and explain to the owner what happened and what changed (files changed, decisions, tests, next steps; changes are handed off for the owner to commit) before ending a session. Never leave the owner guessing what was done.
+12. **The owner commits.** Agents **never** run `git commit` or `git push`. Do the work, verify it (builds/tests pass), then hand off and tell the owner exactly what changed so *they* review and commit. (Staging with `git add` is allowed if it helps the owner.)
 
 ---
 
@@ -80,7 +85,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - Prefer clear, well-lit images; if input is blurry/poorly lit, request a re-capture rather than guessing.
 - Keep modules separate (OMR, scoring, user mgmt) for maintainability.
 - Follow RESTful API conventions and MVC on Laravel.
-- Use Git/GitHub for version control; commit logical units of work.
+- Use Git/GitHub for version control; the **owner commits** logical units of work — agents prepare and verify changes, then hand off.
 - Ask before adding a new dependency or changing documented behavior.
 
 ---
@@ -93,7 +98,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 3. Implement (backend → AI/OMR → web → mobile)
 4. Test (accuracy, timing, RBAC, privacy)
 5. Update documentation (SRS/SDD/Obsidian)
-6. Request review/approval before merging
+6. Hand off to the owner for review — **the owner commits** (agents never commit/push)
+7. End of chat: summarize and explain what happened and what changed (files, decisions, tests, next steps)
 ```
 
 ---

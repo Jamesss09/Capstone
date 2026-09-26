@@ -19,34 +19,38 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 0 — Foundation & Setup
 **Goal:** Reproducible dev environment.
 
-- [ ] Create Git repo (GitHub) with branch strategy (`main`, `develop`, feature branches)
-- [ ] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
+- [x] Create Git repo (GitHub) with branch strategy (`main`, `develop`, feature branches)
+- [x] Docker compose: `mysql`, `php-fpm/laravel`, `nginx`, `python-omr` services
 - [ ] Define env configs (`dev`, `staging`, `prod`)
-- [ ] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
-- **Deliverable:** `docker compose up` runs the full skeleton
+- [x] Scaffold Laravel app + React.js app + React Native app + Python service skeleton
+- **Deliverable:** `docker compose up` runs the full skeleton — *2026-09-26: fixed (compose mount paths + Apache `public/` docroot) so it now serves the real app; still ~10× slower over Windows bind mounts, so dev backend = `php artisan serve` (see [[README]] recap)*
 
 ---
 
 ## Phase 1 — Database & Backend (Laravel + MySQL)
 **Goal:** Data layer + REST APIs with RBAC that every other layer consumes.
 
-- [ ] Migrations + models for all 11 tables:
+- [x] Migrations + models for all 11 tables:
   - `users`, `settings`, `audit_logs`
   - `answer_keys`, `answer_key_items` *(include `section` column for A–E mapping)*
   - `examination_folders`, `examination_applicants`
   - `answer_sheets`, `applicant_answers`, `examination_results`
   - `omr_processing_jobs`
-- [ ] Auth (Laravel Sanctum) + role middleware (**Admin** vs **Staff**)
-- [ ] CRUD APIs: Answer Keys (Admin-only), Folders, Applicants, Results
-- [ ] File upload endpoint for answer sheet images (`image_path`, `image_hash`)
-- [ ] OMR job queue API (create job → status via `tbl_omr_processing_jobs`)
-- [ ] Audit logging middleware
+- [x] Auth (Laravel Sanctum) + role middleware (**Admin** vs **Staff**)
+- [x] CRUD APIs: Answer Keys (Admin-only), Folders, Applicants, Results
+- [x] File upload endpoint for answer sheet images (`image_path`, `image_hash`)
+- [x] OMR job queue API (create job → status via `tbl_omr_processing_jobs`)
+- [x] Audit logging middleware
 - **Deliverable:** postman-tested REST endpoints, seeded roles
 
 ---
 
 ## Phase 2 — AI/OMR Engine (Python + PyTorch + OpenCV)
 **Goal:** Convert a captured sheet image into verified answers + score.
+
+> [!warning] ⏸️ DEFERRED — owner builds own lightweight model + dataset first
+> The OMR microservice skeleton (`omr/` FastAPI + `sheet_config.py`) already exists, but real
+> recognition work waits for the custom model/dataset. Design notes below stay valid.
 
 - [ ] Pre-processing: perspective correction, rotation, lighting, despeckle
 - [ ] Sheet template config per section (from [[Answer Key Format]]):
@@ -65,18 +69,24 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 3 — Web Admin (React.js + Tailwind)
 **Goal:** Web platform for Admins (manage) and Staff (view).
 
-- [ ] Login (role-based redirect)
-- [ ] Admin: Dashboard (stats), Answer Key Mgmt (with per-section editor + Edit/Add modals), Audit Logs, Result Mgmt (folders per course/school-year, filter, export), User/Settings Mgmt (Add/Edit modals)
-- [ ] Staff: scan upload (web fallback), results view
-- [ ] Result table with Passed/Failed status and export (CSV/PDF)
-- **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals)
+- [x] Login (**admin-only on web**) — prototype-matched; `admin/admin123`. Staff accounts are rejected on the web ("Staff accounts sign in via the mobile app."). Staff login uses the same design in the mobile app (Phase 4).
+- [x] Admin **Dashboard** — matches `Admin_Dashboard_Prototype`: navy sidebar w/ nav + logout, header strip, KPI cards (Total Applicants / Sheets Scanned Today / Passing Rate), Recent Scoring Activity table, System Activity feed. Backed by `GET /dashboard`.
+- [x] Admin: Answer Key Mgmt (with per-section editor + Edit/Add modals)
+- [x] Admin: Audit Logs — "Recent Activity" card, color-coded action chips, paginated 50 (Prev/Next), refresh; empty state matches prototype
+- [x] Admin: Result Mgmt (school-year folder launcher → per-folder results table, filters, export)
+- [x] Admin: User Mgmt (list, Add/Edit modal, delete with self-delete guard)
+- [x] Admin: Settings Mgmt — **Appearance Light/Dark** toggle (Fig 19.0); persists `theme` to `tbl_settings` (+ localStorage mirror) and applies a **full dark theme** across the admin UI (CSS-variable tokens in `index.css`, `.dark` class on `<html>`; sidebar stays navy). Settings changes are audit-logged (`CREATE_SETTING`/`UPDATE_SETTING`/`DELETE_SETTING`).
+- [x] Result table with Passed/Failed status + **CSV export** and **PDF export** (client-side jsPDF + autotable, honors active filters)
+- [x] UI polish — **skeleton loading** on all admin data screens (`frontend/src/components/Skeleton.jsx`: pulsing StatCard / Card / Table / Feed / Form placeholders replacing "Loading…" text while data fetches); browser tab title **"TMC Entrance Examination: Answer Sheet Recognition and Scoring System"** + **TMC-seal favicon** (`index.html` → `public/favicon.png`, 26 KB — seal also slimmed to `logo-256.png` 84 KB, was 885 KB)
+- [x] Dashboard **load performance** — session cache (instant remounts, 30s TTL, silent background refresh), in-flight dedupe (kills the StrictMode double-fetch), theme row fetched from backend once per session instead of every mount (dev backend is single-threaded `php artisan serve`; `config:cache` tried → no gain, reverted)
+- **Deliverable:** all web prototypes from [[UI Prototypes]] (incl. Audit Logs + Edit modals) — admin-only
 
 ---
 
 ## Phase 4 — Mobile Scanner (React Native, Android)
 **Goal:** On-device capture + upload.
 
-- [ ] Staff login
+- [ ] Staff login — same design as the web login (`Login_Prototype`), inside the mobile app
 - [ ] Home Scanner → camera capture with capture guidance (lighting/straight-on hints)
 - [ ] Scan Answer Sheet screen (capture + preview)
 - [ ] Identify applicant (name confirmation)

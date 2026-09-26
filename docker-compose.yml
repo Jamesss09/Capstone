@@ -35,17 +35,18 @@ services:
       DB_USERNAME: nexus
       DB_PASSWORD: nexus_pass
     volumes:
-      - ../backend:/var/www/html
+      - ./backend:/var/www/html
     ports:
       - "8000:80"
 
   omr:
     build:
-      context: ./docker/omr
+      context: ./omr
+      dockerfile: ../docker/omr/Dockerfile
     container_name: code-nexus-omr
     restart: unless-stopped
     volumes:
-      - ../omr:/app
+      - ./omr:/app
     ports:
       - "5005:5005"
 

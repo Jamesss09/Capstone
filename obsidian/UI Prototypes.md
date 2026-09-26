@@ -18,9 +18,11 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 ## 1. Login
 
-| File | Maps to (SRS) | Notes |
-| --- | --- | --- |
-| `Login_Prototype.png` | Fig 10.0 Admin Log-in | ⚠️ No separate Staff Login image (Fig 20.0) found |
+| File | Maps to (SRS) | Status | Notes |
+| --- | --- | --- | --- |
+| `Login_Prototype.png` | Fig 10.0 Admin Log-in | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Login.jsx` — TMC seal (`Prototype/logo/Logo.png`), title/subtitle, User·Lock·Eye icons, beige fields, navy/gold Sign In, remember-me, card footer + below-card text |
+
+⚠️ No separate Staff Login image (Fig 20.0) found — the same form serves both roles (role-based redirect later).
 
 ---
 
@@ -28,18 +30,18 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 | File | Maps to (SRS) | Implementation phase |
 | --- | --- | --- |
-| `Admin_Dashboard_Prototyppe.png` | Fig 11.0 Admin Dashboard | Phase 3 |
+| `Admin_Dashboard_Prototype.png` | Fig 11.0 Admin Dashboard | Phase 3 |
 | `Answer_Key_Prototype.png` | Fig 12.0 Answer Key Mgmt | Phase 3 |
 | `New_Answer_Key_Modal_Prototype.png` | Fig 13.0 Add New Key | Phase 3 |
-| `Edit_Answer_Key_Modal_Prorotype.png` | 🆕 not in SRS | Phase 3 |
-| `Examination_Result_Prototype.png` | Fig 14.0 Result – Folders | Phase 3 |
-| `New_SY_Prototype.png` | Fig 15.0 Add Folder / New School Year | Phase 3 |
-| `Examination_Result_Table_Prototype.png` | Fig 16.0 Result – Table | Phase 3 |
-| `User_Management_Prototype.png` | Fig 17.0 User Mgmt | Phase 3 |
-| `Add_New_User_Prototype.png` | Fig 18.0 Add User | Phase 3 |
-| `Edit_user_Prototype.png` | 🆕 not in SRS | Phase 3 |
-| `Settings_Prototype.png` | Fig 19.0 Settings | Phase 3 |
-| `Audit_Logs_prototype.png` | 🆕 not in SRS (matches `tbl_audit_logs`) | Phase 3 |
+| `Edit_Answer_Key_Modal_Prototype.png` | 🆕 not in SRS | Phase 3 |
+| `Examination_Result_Prototype.png` | Fig 14.0 Result – Folders | ✅ **Implemented** (Phase 3) | `frontend/src/pages/ExaminationResults.jsx` (`FolderGrid`) |
+| `New_SY_Prototype.png` | Fig 15.0 Add Folder / New School Year | ✅ **Implemented** (Phase 3) | "Add New School Year" modal — SY `YYYY-YYYY` validation, Current/Archived radio, description |
+| `Examination_Result_Table_Prototype.png` | Fig 16.0 Result – Table | ✅ **Implemented** (Phase 3) | `FolderResults` — filter bar (search/name-ID, course, student type, status), folder header line, table, **CSV + PDF export**, per-result detail |
+| `User_Management_Prototype.png` | Fig 17.0 User Mgmt | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Users.jsx` — table NAME · USERNAME · ROLE · STATUS · ACTION, Add New User (+ email derived as `username@tmc.local`), self-delete blocked |
+| `Add_New_User_Prototype.png` | Fig 18.0 Add User | ✅ **Implemented** (Phase 3) | modal — Full Name, Username + Role, Password + Confirm (+ live password strength meter), ACTIVE/INACTIVE, gold Create User |
+| `Edit_user_Prototype.png` | 🆕 not in SRS | ✅ **Implemented** (Phase 3) | prefilled Edit modal — New Password blank keeps current password (+ live password strength meter), Save Changes |
+| `Settings_Prototype.png` | Fig 19.0 Settings | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Settings.jsx` — single **Appearance** card, Light/Dark segmented toggle; persists `theme` to `tbl_settings` (+localStorage) and applies a **full dark theme** across the admin UI via CSS-variable tokens (`index.css` `:root`/`.dark` — sidebar stays navy) |
+| `Audit_Logs_prototype.png` | 🆕 not in SRS (matches `tbl_audit_logs`) | ✅ **Implemented** (Phase 3) | `frontend/src/pages/AuditLogs.jsx` — "Recent Activity" card: When · User · Action (color-coded chips) · Target · IP; paginated 50 (Prev/Next + "Showing X–Y of N"), refresh button; empty state matches prototype ("No audit logs recorded yet") |
 
 ---
 
@@ -58,10 +60,11 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 ## 4. Gaps & Actions
 
-- [ ] **Staff Login (Fig 20.0)** — confirm if `Login_Prototype.png` covers it or add a dedicated image
+- [ ] **Staff Login (Fig 20.0)** — confirm if `Login_Prototype.png` covers it or add a dedicated image (same form reused for now)
+- [x] **Fix filename typos** — done on disk (2026-09-22): `Admin_Dashboard_Prototype.png`, `Edit_Answer_Key_Modal_Prototype.png`
 - [ ] **SRS update** — list the new screens (Audit Logs, Edit Key, Edit User, Scan, Processing, Order) in the SRS figure list
-- [ ] **Fix filename typos**: `Admin_Dashboard_Prototyppe.png` → `Admin_Dashboard_Prototype.png`, `Edit_Answer_Key_Modal_Prorotype.png` → `Edit_Answer_Key_Modal_Prototype.png`
 - [ ] **Visual verification** — confirm actual UI elements (fields, buttons, sidebar) against these entries
+- [ ] **Login visual check** — user compares `Login.jsx` to `Login_Prototype.png` side-by-side
 
 ---
 

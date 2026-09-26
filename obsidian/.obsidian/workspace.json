@@ -11,10 +11,14 @@
             "id": "ef501671778e5eb1",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "Overview.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Overview"
             }
           }
         ]
@@ -183,17 +187,19 @@
   },
   "active": "ef501671778e5eb1",
   "lastOpenFiles": [
-    "Software Requirement Specification (SRS).md",
-    "README.md",
-    "Overview.md",
     "AI - Implementation Plan.md",
+    "Untitled.md",
+    "Untitled.base",
+    "README.md",
     "UI Prototypes.md",
+    "Tech Stack.md",
     "Agents - Task and Rules.md",
+    "Backend API.md",
+    "Software Requirement Specification (SRS).md",
+    "Overview.md",
     "Answer Key Format.md",
     "Software Design Description (SDD).md",
-    "Tech Stack.md",
     "AI - Task and Rules.md",
-    "Welcome.md",
-    "Untitled.md"
+    "Welcome.md"
   ]
 }
