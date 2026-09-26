@@ -40,7 +40,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | `User_Management_Prototype.png` | Fig 17.0 User Mgmt | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Users.jsx` — table NAME · USERNAME · ROLE · STATUS · ACTION, Add New User (+ email derived as `username@tmc.local`), self-delete blocked |
 | `Add_New_User_Prototype.png` | Fig 18.0 Add User | ✅ **Implemented** (Phase 3) | modal — Full Name, Username + Role, Password + Confirm (+ live password strength meter), ACTIVE/INACTIVE, gold Create User |
 | `Edit_user_Prototype.png` | 🆕 not in SRS | ✅ **Implemented** (Phase 3) | prefilled Edit modal — New Password blank keeps current password (+ live password strength meter), Save Changes |
-| `Settings_Prototype.png` | Fig 19.0 Settings | Phase 3 |
+| `Settings_Prototype.png` | Fig 19.0 Settings | ✅ **Implemented** (Phase 3) | `frontend/src/pages/Settings.jsx` — single **Appearance** card, Light/Dark segmented toggle; persists `theme` to `tbl_settings` (+localStorage) and applies a **full dark theme** across the admin UI via CSS-variable tokens (`index.css` `:root`/`.dark` — sidebar stays navy) |
 | `Audit_Logs_prototype.png` | 🆕 not in SRS (matches `tbl_audit_logs`) | Phase 3 |
 
 ---

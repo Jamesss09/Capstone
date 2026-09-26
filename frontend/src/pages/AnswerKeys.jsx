@@ -59,7 +59,7 @@ function StatusBadge({ status }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-        active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+        active ? 'bg-[var(--ok)] text-[var(--ok-text)]' : 'bg-[var(--fill-strong)] text-[var(--muted)]'
       }`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -86,12 +86,12 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
   const disabled = busy
 
   return (
-    <div className="rounded-xl bg-[#F4F2EA] border border-slate-200 shadow-sm overflow-hidden">
+    <div className="rounded-xl bg-[var(--panel)] border border-[var(--line)] shadow-sm overflow-hidden">
       {/* Header: key code + name + status */}
       <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-wider text-[#6B6E76]">{keyCode(ak)}</p>
-          <h3 className="text-base font-bold text-[#16233F] mt-0.5 truncate">{ak.exam_title}</h3>
+          <p className="text-[11px] font-semibold tracking-wider text-[var(--muted)]">{keyCode(ak)}</p>
+          <h3 className="text-base font-bold text-[var(--ink)] mt-0.5 truncate">{ak.exam_title}</h3>
         </div>
         <StatusBadge status={ak.status} />
       </div>
@@ -99,22 +99,22 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
       {/* Field rows */}
       <div className="px-5 grid grid-cols-3 gap-4">
         <div>
-          <p className="text-[10px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+          <p className="text-[10px] font-semibold tracking-wider text-[var(--muted)] uppercase">
             School Year
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#16233F]">{ak.school_year}</p>
+          <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">{ak.school_year}</p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+          <p className="text-[10px] font-semibold tracking-wider text-[var(--muted)] uppercase">
             Total Items
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#16233F]">{ak.items_count} items</p>
+          <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">{ak.items_count} items</p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+          <p className="text-[10px] font-semibold tracking-wider text-[var(--muted)] uppercase">
             Passing Score
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-[#16233F]">
+          <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">
             {Number(ak.passing_score)}%
           </p>
         </div>
@@ -122,7 +122,7 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
 
       {/* Section breakdown */}
       <div className="px-5 pt-4 pb-5">
-        <p className="text-[10px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+        <p className="text-[10px] font-semibold tracking-wider text-[var(--muted)] uppercase">
           Sections ({sections.length})
         </p>
         {sections.length > 0 ? (
@@ -130,7 +130,7 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
             {sections.map(([name, count]) => (
               <span
                 key={name}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 border border-slate-200 px-2.5 py-1 text-xs font-medium text-[#16233F]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--card-soft)] border border-[var(--line)] px-2.5 py-1 text-xs font-medium text-[var(--ink)]"
               >
                 {name}
                 <span className="text-[#348BDA] font-bold">{count}</span>
@@ -138,21 +138,21 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
             ))}
           </div>
         ) : (
-          <p className="mt-1.5 text-sm text-[#6B6E76] italic">
+          <p className="mt-1.5 text-sm text-[var(--muted)] italic">
             No sections yet — open Edit to define items and answers.
           </p>
         )}
       </div>
 
       {/* Actions */}
-      <div className="px-5 py-3.5 border-t border-slate-200 bg-white/40 flex items-center gap-2 flex-wrap">
+      <div className="px-5 py-3.5 border-t border-[var(--line)] bg-[var(--card-soft)] flex items-center gap-2 flex-wrap">
         {active ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 mr-auto">
             <CircleCheck size={14} />
             Active — used by the mobile scanner
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 mr-auto">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--muted-soft)] mr-auto">
             <KeyRound size={14} />
             Not active — scanner uses the active key
           </span>
@@ -162,7 +162,7 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
             onClick={onDeactivate}
             disabled={disabled}
             title="Switch this key off so the scanner stops using it"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-white transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-2 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors disabled:opacity-50"
           >
             <Power size={14} />
             Set as Inactive
@@ -181,7 +181,7 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
         <button
           onClick={onEdit}
           disabled={disabled}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-white transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-2 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors disabled:opacity-50"
         >
           <Pencil size={14} />
           Edit
@@ -211,16 +211,16 @@ function DeleteConfirm({ ak, busy, onCancel, onConfirm }) {
       onClick={!busy ? onCancel : undefined}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-sm rounded-2xl bg-[var(--card)] shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
             <Trash2 size={18} className="text-red-500" />
           </div>
-          <h2 className="text-base font-bold text-[#16233F]">Delete answer key?</h2>
+          <h2 className="text-base font-bold text-[var(--ink)]">Delete answer key?</h2>
         </div>
-        <p className="mt-2 text-sm text-[#6B6E76]">
+        <p className="mt-2 text-sm text-[var(--muted)]">
           “{ak.exam_title}” ({keyCode(ak)}) and its {ak.items_count} answer items will be
           permanently removed. This cannot be undone.
         </p>
@@ -237,7 +237,7 @@ function DeleteConfirm({ ak, busy, onCancel, onConfirm }) {
           <button
             onClick={onCancel}
             disabled={busy}
-            className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="flex-1 rounded-lg border border-[var(--line)] py-2.5 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -520,13 +520,13 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
       onClick={!saving ? onClose : undefined}
     >
       <div
-        className="w-full max-w-3xl rounded-2xl bg-white shadow-xl flex flex-col max-h-[90vh]"
+        className="w-full max-w-3xl rounded-2xl bg-[var(--card)] shadow-xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-200">
+        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-[var(--line)]">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-[#16233F]">
+            <h2 className="text-lg font-bold text-[var(--ink)]">
               {mode === 'new' ? 'New Answer Key' : `Editing ${keyCode(editingKey)} – ${editingKey.exam_title}`}
             </h2>
             <p className="text-xs text-[#85B3DA] mt-0.5">
@@ -538,14 +538,14 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="rounded-lg p-2 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
           >
             <X size={18} />
           </button>
         </div>
 
         {!ready ? (
-          <div className="p-10 text-center text-sm text-[#6B6E76]">Loading answer key…</div>
+          <div className="p-10 text-center text-sm text-[var(--muted)]">Loading answer key…</div>
         ) : (
           <>
             {/* Body */}
@@ -564,34 +564,34 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
 
               {/* Basic information */}
               <section>
-                <h3 className="text-sm font-bold text-[#16233F] mb-3 uppercase tracking-wide">
+                <h3 className="text-sm font-bold text-[var(--ink)] mb-3 uppercase tracking-wide">
                   Basic Information
                 </h3>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
+                    <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                       Answer Key Name
                     </label>
                     <input
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="e.g. TMC Entrance Exam 2026"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                      className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
+                    <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                       School Year
                     </label>
                     <input
                       value={schoolYear}
                       onChange={(e) => setSchoolYear(e.target.value)}
                       placeholder="SY 2026-2027"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                      className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
+                    <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                       Passing Score (%)
                     </label>
                     <input
@@ -600,17 +600,17 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                       max={100}
                       value={passingScore}
                       onChange={(e) => setPassingScore(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                      className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
                     />
                   </div>
                 </div>
               </section>
 
               {/* Import from file */}
-              <section className="rounded-xl border border-slate-200 bg-[#F4F2EA] p-4">
+              <section className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4">
                 <div className="flex items-center justify-between gap-4 mb-3">
-                  <h3 className="text-sm font-bold text-[#16233F]">
-                    Import from File <span className="text-[11px] font-medium text-[#6B6E76]">(optional)</span>
+                  <h3 className="text-sm font-bold text-[var(--ink)]">
+                    Import from File <span className="text-[11px] font-medium text-[var(--muted)]">(optional)</span>
                   </h3>
                   <div className="flex gap-4 text-xs font-semibold text-[#348BDA]">
                     <button
@@ -635,10 +635,10 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                     e.preventDefault()
                     readFile(e.dataTransfer.files?.[0])
                   }}
-                  className="rounded-lg border-2 border-dashed border-[#85B3DA] bg-white/70 px-4 py-6 text-center transition-colors hover:bg-white"
+                  className="rounded-lg border-2 border-dashed border-[#85B3DA] bg-[var(--card-soft)] px-4 py-6 text-center transition-colors hover:bg-[var(--fill)]"
                 >
                   <Upload size={22} className="mx-auto text-[#348BDA]" />
-                  <p className="mt-2 text-sm text-[#6B6E76]">
+                  <p className="mt-2 text-sm text-[var(--muted)]">
                     Drag &amp; drop a JSON or CSV file here, or{' '}
                     <label className="cursor-pointer text-[#348BDA] underline">
                       browse
@@ -653,7 +653,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                       />
                     </label>
                   </p>
-                  <p className="mt-1 text-[11px] text-[#6B6E76]">JSON / CSV · max 1 MB</p>
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">JSON / CSV · max 1 MB</p>
                 </div>
               </section>
 
@@ -661,10 +661,10 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
               <section>
                 <div className="flex items-center justify-between gap-4 mb-3">
                   <div>
-                    <h3 className="text-sm font-bold text-[#16233F] uppercase tracking-wide">
+                    <h3 className="text-sm font-bold text-[var(--ink)] uppercase tracking-wide">
                       Answer Sections
                     </h3>
-                    <p className="text-xs text-[#6B6E76] mt-0.5">
+                    <p className="text-xs text-[var(--muted)] mt-0.5">
                       {plural(totalItems, 'item')} across {plural(sections.length, 'section')} ·{' '}
                       {answered} answered
                     </p>
@@ -678,7 +678,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                   </button>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)]">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-[#16233F] text-white text-[11px] font-semibold tracking-wider">
@@ -695,13 +695,13 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                         const isOpen = expanded.has(idx)
                         return (
                           <Fragment key={idx}>
-                            <tr className="border-t border-slate-100 hover:bg-slate-50/60">
+                            <tr className="border-t border-[var(--line-soft)] hover:bg-[var(--fill)]">
                               <td className="px-4 py-2.5">
                                 <input
                                   value={s.name}
                                   onChange={(e) => updateSection(idx, { name: e.target.value })}
                                   placeholder="Section name"
-                                  className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-medium text-[#16233F] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 focus:border-[#348BDA]"
+                                  className="w-full rounded-md border border-[var(--line)] px-2.5 py-1.5 text-sm font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 focus:border-[#348BDA]"
                                 />
                               </td>
                               <td className="px-3 py-2.5">
@@ -711,14 +711,14 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                   max={200}
                                   value={s.count}
                                   onChange={(e) => updateSection(idx, { count: e.target.value })}
-                                  className="w-16 rounded-md border border-slate-200 px-2 py-1.5 text-sm font-semibold text-[#16233F] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                                  className="w-16 rounded-md border border-[var(--line)] px-2 py-1.5 text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
                                 />
                               </td>
                               <td className="px-3 py-2.5">
                                 <select
                                   value={s.options}
                                   onChange={(e) => updateSection(idx, { options: e.target.value })}
-                                  className="rounded-md border border-slate-200 px-2 py-1.5 text-sm font-semibold text-[#16233F] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                                  className="rounded-md border border-[var(--line)] px-2 py-1.5 text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
                                 >
                                   <option value="A-D">A–D (4)</option>
                                   <option value="A-E">A–E (5)</option>
@@ -728,8 +728,8 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                 <span
                                   className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
                                     secAnswered === s.count && s.count > 0
-                                      ? 'bg-emerald-100 text-emerald-700'
-                                      : 'bg-slate-100 text-slate-500'
+                                      ? 'bg-[var(--ok)] text-[var(--ok-text)]'
+                                      : 'bg-[var(--fill-strong)] text-[var(--muted)]'
                                   }`}
                                 >
                                   {secAnswered}/{s.count}
@@ -740,14 +740,14 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                   <button
                                     onClick={() => toggleExpand(idx)}
                                     title={isOpen ? 'Hide answers' : 'Edit answers'}
-                                    className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#348BDA] transition-colors"
+                                    className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors"
                                   >
                                     {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                   </button>
                                   <button
                                     onClick={() => removeSection(idx)}
                                     title="Remove section"
-                                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                    className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-red-50 hover:text-red-500 transition-colors"
                                   >
                                     <Trash2 size={16} />
                                   </button>
@@ -755,15 +755,15 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                               </td>
                             </tr>
                             {isOpen && (
-                              <tr className="border-t border-slate-100 bg-[#F4F2EA]">
+                              <tr className="border-t border-[var(--line-soft)] bg-[var(--panel)]">
                                 <td colSpan={5} className="px-4 py-3">
-                                  <p className="text-[11px] font-semibold text-[#6B6E76] mb-2">
+                                  <p className="text-[11px] font-semibold text-[var(--muted)] mb-2">
                                     Correct answers — item number and choice
                                   </p>
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                     {s.answers.map((a, i) => (
                                       <div key={i} className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-medium text-[#6B6E76] w-5 text-right shrink-0">
+                                        <span className="text-[11px] font-medium text-[var(--muted)] w-5 text-right shrink-0">
                                           {i + 1}
                                         </span>
                                         <select
@@ -771,8 +771,8 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                           onChange={(e) => setAnswer(idx, i, e.target.value || null)}
                                           className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 ${
                                             a
-                                              ? 'border-slate-300 bg-white text-[#16233F]'
-                                              : 'border-slate-200 bg-slate-50 text-slate-400'
+                                              ? 'border-[var(--line)] bg-[var(--card)] text-[var(--ink)]'
+                                              : 'border-[var(--line)] bg-[var(--fill)] text-[var(--muted-soft)]'
                                           }`}
                                         >
                                           <option value="">–</option>
@@ -785,7 +785,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                       </div>
                                     ))}
                                     {s.count === 0 && (
-                                      <p className="col-span-full text-xs text-[#6B6E76] italic">
+                                      <p className="col-span-full text-xs text-[var(--muted)] italic">
                                         Set a number of items to add answer fields.
                                       </p>
                                     )}
@@ -798,7 +798,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                       })}
                       {sections.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-sm text-[#6B6E76]">
+                          <td colSpan={5} className="px-4 py-8 text-center text-sm text-[var(--muted)]">
                             No sections yet — press “Add Section” to define one.
                           </td>
                         </tr>
@@ -810,8 +810,8 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-4">
-              <p className="text-xs text-[#6B6E76]">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--fill)] flex items-center justify-between gap-4">
+              <p className="text-xs text-[var(--muted)]">
                 {totalItems === 0
                   ? 'No items — the key will be saved without answers.'
                   : allAnswered
@@ -822,7 +822,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                 <button
                   onClick={onClose}
                   disabled={saving}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                  className="rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -917,14 +917,14 @@ export default function AnswerKeys() {
     <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 mb-6">
-        <p className="text-sm text-[#6B6E76]">
+        <p className="text-sm text-[var(--muted)]">
           {keys.length} key{keys.length === 1 ? '' : 's'} ·{' '}
           <span className="font-semibold text-emerald-600">{activeCount} active</span>
           <span className="ml-3 text-xs text-[#85B3DA]">Only one key can be active at a time.</span>
         </p>
         <button
           onClick={() => setModal({ mode: 'new' })}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
         >
           <Plus size={16} />
           New Answer Key
@@ -942,18 +942,18 @@ export default function AnswerKeys() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[#6B6E76]">Loading answer keys…</p>
+        <p className="text-sm text-[var(--muted)]">Loading answer keys…</p>
       ) : keys.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-8 py-14 text-center">
+        <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <KeyRound size={38} className="mx-auto text-[#85B3DA]" />
-          <h3 className="mt-3 text-base font-bold text-[#16233F]">No answer keys yet</h3>
-          <p className="mt-1 text-sm text-[#6B6E76] max-w-md mx-auto">
+          <h3 className="mt-3 text-base font-bold text-[var(--ink)]">No answer keys yet</h3>
+          <p className="mt-1 text-sm text-[var(--muted)] max-w-md mx-auto">
             Create the official answer key for the current entrance exam, then the mobile scanner
             will use it by default.
           </p>
           <button
             onClick={() => setModal({ mode: 'new' })}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
           >
             <Plus size={16} />
             New Answer Key

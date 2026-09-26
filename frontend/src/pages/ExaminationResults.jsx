@@ -77,7 +77,7 @@ function FolderStatus({ status }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-        current ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+        current ? 'bg-[var(--ok)] text-[var(--ok-text)]' : 'bg-[var(--fill-strong)] text-[var(--muted)]'
       }`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${current ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -95,7 +95,7 @@ function ResultStatus({ status }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-        passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+        passed ? 'bg-[var(--ok)] text-[var(--ok-text)]' : 'bg-red-100 text-red-600'
       }`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${passed ? 'bg-emerald-500' : 'bg-red-500'}`} />
@@ -114,26 +114,26 @@ function FolderCard({ folder, onOpen }) {
   const applicants = Number(folder.applicants_count ?? 0)
 
   return (
-    <div className="rounded-xl bg-[#F4F2EA] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <div className="rounded-xl bg-[var(--panel)] border border-[var(--line)] shadow-sm overflow-hidden flex flex-col">
       <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-wider text-[#6B6E76]">School Year</p>
-          <h3 className="text-lg font-bold text-[#16233F] mt-0.5">{folder.school_year}</h3>
+          <p className="text-[11px] font-semibold tracking-wider text-[var(--muted)]">School Year</p>
+          <h3 className="text-lg font-bold text-[var(--ink)] mt-0.5">{folder.school_year}</h3>
         </div>
         <FolderStatus status={folder.status} />
       </div>
 
       <div className="px-5 flex-1">
-        <p className="text-sm text-[#6B6E76] line-clamp-2">
+        <p className="text-sm text-[var(--muted)] line-clamp-2">
           {folder.description || `Results are filed under ${folder.school_year}.`}
         </p>
         <div className="mt-4 flex items-center gap-4">
           <p
             className={`inline-flex items-center gap-1.5 text-sm font-bold ${
-              current ? 'text-emerald-600' : 'text-[#6B6E76]'
+              current ? 'text-emerald-600' : 'text-[var(--muted)]'
             }`}
           >
-            <span className={`w-2 h-2 rounded-full ${current ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+            <span className={`w-2 h-2 rounded-full ${current ? 'bg-emerald-500' : 'bg-[var(--fill-strong)]'}`} />
             {results} {results === 1 ? 'result' : 'results'}
           </p>
           {applicants > 0 && (
@@ -144,7 +144,7 @@ function FolderCard({ folder, onOpen }) {
         </div>
       </div>
 
-      <div className="px-5 py-4 border-t border-slate-200 bg-white/40">
+      <div className="px-5 py-4 border-t border-[var(--line)] bg-[var(--card-soft)]">
         <button
           onClick={onOpen}
           className="inline-flex items-center gap-2 rounded-lg bg-[#16233F] hover:bg-[#1d2f52] px-4 py-2 text-xs font-bold text-[#EDC31D] transition-colors"
@@ -210,12 +210,12 @@ function NewFolderModal({ token, onClose, onCreated }) {
       onClick={!saving ? onClose : undefined}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-md rounded-2xl bg-[var(--card)] shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-[#16233F]">Add New School Year</h2>
+            <h2 className="text-lg font-bold text-[var(--ink)]">Add New School Year</h2>
             <p className="text-xs text-[#85B3DA] mt-0.5">
               Create a folder where examination results will be stored.
             </p>
@@ -223,7 +223,7 @@ function NewFolderModal({ token, onClose, onCreated }) {
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="rounded-lg p-2 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
           >
             <X size={18} />
           </button>
@@ -238,22 +238,22 @@ function NewFolderModal({ token, onClose, onCreated }) {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-[#6B6E76] mb-1">School Year</label>
+            <label className="block text-xs font-semibold text-[var(--muted)] mb-1">School Year</label>
             <input
               value={schoolYear}
               onChange={(e) => setSchoolYear(e.target.value)}
               placeholder="e.g. SY 2027-2028"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+              className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
             />
             {fieldError && <p className="mt-1 text-xs text-red-600">{fieldError}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#6B6E76] mb-2">
+            <label className="block text-xs font-semibold text-[var(--muted)] mb-2">
               Folder Status
             </label>
             <div className="flex gap-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-[#16233F] cursor-pointer">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--ink)] cursor-pointer">
                 <input
                   type="radio"
                   checked={status === 'Active'}
@@ -262,7 +262,7 @@ function NewFolderModal({ token, onClose, onCreated }) {
                 />
                 Current
               </label>
-              <label className="flex items-center gap-2 text-sm font-medium text-[#16233F] cursor-pointer">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--ink)] cursor-pointer">
                 <input
                   type="radio"
                   checked={status === 'Archived'}
@@ -272,7 +272,7 @@ function NewFolderModal({ token, onClose, onCreated }) {
                 Archived
               </label>
             </div>
-            <p className="mt-1.5 text-[11px] text-[#6B6E76]">
+            <p className="mt-1.5 text-[11px] text-[var(--muted)]">
               {status === 'Active'
                 ? 'The active folder for the ongoing school year.'
                 : 'Kept for historical results; no new examinations are filed here.'}
@@ -280,15 +280,15 @@ function NewFolderModal({ token, onClose, onCreated }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
-              Description <span className="font-medium text-slate-400">(optional)</span>
+            <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
+              Description <span className="font-medium text-[var(--muted-soft)]">(optional)</span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Optional description"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 resize-none"
+              className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 resize-none"
             />
           </div>
         </div>
@@ -297,14 +297,14 @@ function NewFolderModal({ token, onClose, onCreated }) {
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
             disabled={saving}
-            className="rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2 text-sm font-bold text-[#16233F] shadow-sm transition-colors disabled:opacity-50"
+            className="rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors disabled:opacity-50"
           >
             {saving ? 'Creating…' : 'Create Folder'}
           </button>
@@ -342,12 +342,12 @@ function ResultDetail({ result, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-md rounded-2xl bg-[var(--card)] shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-[#16233F]">Applicant Result</h2>
+            <h2 className="text-lg font-bold text-[var(--ink)]">Applicant Result</h2>
             <p className="text-xs text-[#85B3DA] mt-0.5">
               {applicant.applicant_name} · {examId(result.applicant_id)}
             </p>
@@ -356,33 +356,33 @@ function ResultDetail({ result, onClose }) {
             <ResultStatus status={result.status} />
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 transition-colors"
+              className="rounded-lg p-2 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] transition-colors"
             >
               <X size={18} />
             </button>
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl bg-[#F4F2EA] border border-slate-200 px-5 py-4 flex items-center justify-between gap-4">
+        <div className="mt-5 rounded-xl bg-[var(--panel)] border border-[var(--line)] px-5 py-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+            <p className="text-[11px] font-semibold tracking-wider text-[var(--muted)] uppercase">
               Score
             </p>
-            <p className="mt-0.5 text-2xl font-bold text-[#16233F]">{score.toFixed(2)}</p>
+            <p className="mt-0.5 text-2xl font-bold text-[var(--ink)]">{score.toFixed(2)}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+            <p className="text-[11px] font-semibold tracking-wider text-[var(--muted)] uppercase">
               Passing Score
             </p>
             <p className="mt-0.5 text-sm font-bold text-[#348BDA]">{passing}%</p>
           </div>
         </div>
 
-        <div className="mt-4 divide-y divide-slate-100">
+        <div className="mt-4 divide-y divide-[var(--line-soft)]">
           {rows.map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-4 py-2.5">
-              <p className="text-xs font-semibold text-[#6B6E76]">{label}</p>
-              <p className="text-sm font-semibold text-[#16233F] text-right">{value ?? '—'}</p>
+              <p className="text-xs font-semibold text-[var(--muted)]">{label}</p>
+              <p className="text-sm font-semibold text-[var(--ink)] text-right">{value ?? '—'}</p>
             </div>
           ))}
         </div>
@@ -390,7 +390,7 @@ function ResultDetail({ result, onClose }) {
         <div className="mt-5 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+            className="rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill-strong)] transition-colors"
           >
             Close
           </button>
@@ -405,7 +405,7 @@ function ResultDetail({ result, onClose }) {
 /* ------------------------------------------------------------------ */
 
 const selectCls =
-  'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40'
+  'rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40'
 
 /* ------------------------------------------------------------------ */
 /* Results table inside a folder                                       */
@@ -467,7 +467,7 @@ function FolderResults({ folderId }) {
       <div className="flex items-center justify-between gap-4 mb-5">
         <button
           onClick={() => navigate('/results')}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-white transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] px-3.5 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors"
         >
           <ArrowLeft size={16} />
           All School Years
@@ -485,18 +485,18 @@ function FolderResults({ folderId }) {
       )}
 
       {loading ? (
-        <p className="text-sm text-[#6B6E76]">Loading folder results…</p>
+        <p className="text-sm text-[var(--muted)]">Loading folder results…</p>
       ) : (
         <>
           {/* Filter bar */}
-          <div className="rounded-xl bg-white border border-slate-200 shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 mb-4">
+          <div className="rounded-xl bg-[var(--card)] border border-[var(--line)] shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 mb-4">
             <div className="relative flex-1 min-w-[220px]">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-soft)]" />
               <input
                 value={filters.search}
                 onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
                 placeholder="Search by name or examinee ID…"
-                className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
+                className="w-full rounded-lg border border-[var(--line)] bg-[var(--field)] pl-9 pr-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
               />
             </div>
             <select
@@ -535,7 +535,7 @@ function FolderResults({ folderId }) {
             {hasFilters && (
               <button
                 onClick={() => setFilters({ search: '', course: '', studentType: '', status: '' })}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill-strong)] transition-colors"
               >
                 Clear
               </button>
@@ -551,40 +551,40 @@ function FolderResults({ folderId }) {
           </div>
 
           {/* Folder header line */}
-          <p className="text-sm text-[#6B6E76] mb-3">
-            <span className="font-bold text-[#16233F]">{folder?.school_year}</span>
+          <p className="text-sm text-[var(--muted)] mb-3">
+            <span className="font-bold text-[var(--ink)]">{folder?.school_year}</span>
             <span className="mx-1.5">·</span>
             {filtered.length} of {results.length} result{results.length === 1 ? '' : 's'} shown
           </p>
 
           {results.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-8 py-14 text-center">
+            <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
               <FolderOpen size={38} className="mx-auto text-[#85B3DA]" />
-              <h3 className="mt-3 text-base font-bold text-[#16233F]">
+              <h3 className="mt-3 text-base font-bold text-[var(--ink)]">
                 No results filed under {folder?.school_year} yet
               </h3>
-              <p className="mt-1 text-sm text-[#6B6E76] max-w-md mx-auto">
+              <p className="mt-1 text-sm text-[var(--muted)] max-w-md mx-auto">
                 Results populate here automatically after answer sheets are scanned and scored by
                 the mobile OMR scanner.
               </p>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-8 py-14 text-center">
+            <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
               <Search size={34} className="mx-auto text-[#85B3DA]" />
-              <h3 className="mt-3 text-base font-bold text-[#16233F]">
+              <h3 className="mt-3 text-base font-bold text-[var(--ink)]">
                 No results match the current filters
               </h3>
               <button
                 onClick={() =>
                   setFilters({ search: '', course: '', studentType: '', status: '' })
                 }
-                className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                className="mt-4 rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors"
               >
                 Clear filters
               </button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)] shadow-sm">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[#16233F] text-white text-[11px] font-semibold tracking-wider">
@@ -598,9 +598,9 @@ function FolderResults({ folderId }) {
                 </thead>
                 <tbody>
                   {filtered.map((r) => (
-                    <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/60">
+                    <tr key={r.id} className="border-t border-[var(--line-soft)] hover:bg-[var(--fill)]">
                       <td className="px-4 py-3">
-                        <p className="text-sm font-bold text-[#16233F]">
+                        <p className="text-sm font-bold text-[var(--ink)]">
                           {r.applicant?.applicant_name ?? '—'}
                         </p>
                         {r.applicant?.student_type && (
@@ -612,14 +612,14 @@ function FolderResults({ folderId }) {
                       <td className="px-4 py-3 text-sm font-semibold text-[#348BDA]">
                         {examId(r.applicant_id)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-[#6B6E76]">
+                      <td className="px-4 py-3 text-sm text-[var(--muted)]">
                         {formatDate(r.applicant?.examination_date)}
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-sm font-bold text-[#16233F]">
+                        <p className="text-sm font-bold text-[var(--ink)]">
                           {Number(r.score).toFixed(2)}
                         </p>
-                        <p className="text-[11px] text-[#6B6E76]">of {r.total_items} items</p>
+                        <p className="text-[11px] text-[var(--muted)]">of {r.total_items} items</p>
                       </td>
                       <td className="px-4 py-3">
                         <ResultStatus status={r.status} />
@@ -627,7 +627,7 @@ function FolderResults({ folderId }) {
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setDetail(r)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-white transition-colors"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors"
                         >
                           <Eye size={13} />
                           View
@@ -684,7 +684,7 @@ function FolderGrid() {
     <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 mb-6">
-        <p className="text-sm text-[#6B6E76]">
+        <p className="text-sm text-[var(--muted)]">
           {folders.length} school year folder{folders.length === 1 ? '' : 's'} ·{' '}
           <span className="font-semibold text-emerald-600">{currentCount} current</span>
           <span className="ml-3 text-xs text-[#85B3DA]">
@@ -693,7 +693,7 @@ function FolderGrid() {
         </p>
         <button
           onClick={() => setShowNew(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
         >
           <Plus size={16} />
           Add New SY
@@ -711,18 +711,18 @@ function FolderGrid() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[#6B6E76]">Loading school year folders…</p>
+        <p className="text-sm text-[var(--muted)]">Loading school year folders…</p>
       ) : folders.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-8 py-14 text-center">
+        <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <FolderOpen size={38} className="mx-auto text-[#85B3DA]" />
-          <h3 className="mt-3 text-base font-bold text-[#16233F]">No school year folders yet</h3>
-          <p className="mt-1 text-sm text-[#6B6E76] max-w-md mx-auto">
+          <h3 className="mt-3 text-base font-bold text-[var(--ink)]">No school year folders yet</h3>
+          <p className="mt-1 text-sm text-[var(--muted)] max-w-md mx-auto">
             Create a folder for the current school year first. Examination results are filed under
             each school year folder.
           </p>
           <button
             onClick={() => setShowNew(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
           >
             <Plus size={16} />
             Add New SY

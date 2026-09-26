@@ -1,1 +1,49 @@
 @import "tailwindcss";
+
+/*
+ * Semantic color tokens for the admin dashboard.
+ * All surfaces reference these via bg-[var(--x)] / text-[var(--x)] /
+ * border-[var(--x)], so the whole UI flips by toggling the .dark class
+ * on <html> — no `dark:` variants needed anywhere.
+ *
+ * Light values mirror the prototype palette; dark values are brand-harmonized
+ * navy tints (sidebar #16233F stays constant and reads as a surface).
+ */
+:root {
+  --bg: #f4f5f7; /* page background + header strip */
+  --card: #ffffff; /* cards, modals, tables */
+  --card-soft: #f8f7f1; /* translucent card fills (bg-white/40…80) */
+  --panel: #f4f2ea; /* brand beige — stat cards, section panels */
+  --field: #ffffff; /* form inputs */
+  --ink: #16233f; /* primary text */
+  --muted: #6b6e76; /* secondary text */
+  --muted-soft: #94a3b8; /* placeholder / hint text */
+  --line: #e2e8f0; /* borders (slate-200/300) */
+  --line-soft: #f1f5f9; /* light borders / dividers (slate-100) */
+  --fill: #f1f5f9; /* hover fills, table header (slate-50) */
+  --fill-strong: #e2e8f0; /* bars, inactive chips (slate-100/200) */
+  --ok: #d1fae5; /* success chip fill (emerald-100) */
+  --ok-text: #047857; /* success chip text (emerald-700) */
+}
+
+.dark {
+  --bg: #0b1120;
+  --card: #182237;
+  --card-soft: #1f2b44;
+  --panel: #1f2b44;
+  --field: #141d30;
+  --ink: #e6eaf2;
+  --muted: #9aa7bf;
+  --muted-soft: #64748b;
+  --line: #2c3b5e;
+  --line-soft: #22304d;
+  --fill: #212e4a;
+  --fill-strong: #2c3b5e;
+  --ok: rgba(16, 185, 129, 0.16);
+  --ok-text: #34d399;
+}
+
+/* Avoid a white flash behind fixed overlays / overscroll in dark mode */
+html {
+  background-color: var(--bg);
+}

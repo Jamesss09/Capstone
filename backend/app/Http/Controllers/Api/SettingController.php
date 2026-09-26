@@ -29,6 +29,14 @@ class SettingController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'CREATE_SETTING',
+            'table_name' => 'tbl_settings',
+            'record_id' => $setting->id,
+            'ip_address' => $request->ip(),
+        ]);
+
         return response()->json($setting, 201);
     }
 
@@ -41,12 +49,28 @@ class SettingController extends Controller
 
         $setting->update([...$data, 'updated_by' => $request->user()->id]);
 
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'UPDATE_SETTING',
+            'table_name' => 'tbl_settings',
+            'record_id' => $setting->id,
+            'ip_address' => $request->ip(),
+        ]);
+
         return response()->json($setting->fresh());
     }
 
     public function destroy(Request $request, Setting $setting): JsonResponse
     {
         $setting->delete();
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'DELETE_SETTING',
+            'table_name' => 'tbl_settings',
+            'record_id' => $setting->id,
+            'ip_address' => $request->ip(),
+        ]);
 
         return response()->json(['message' => 'Setting deleted.']);
     }

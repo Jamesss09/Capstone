@@ -84,15 +84,15 @@ function describeAction(log) {
 /** Small KPI card — beige box with a leading brand icon */
 function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-[#F4F2EA] border border-slate-200 px-5 py-5">
+    <div className="flex items-center gap-4 rounded-xl bg-[var(--panel)] border border-[var(--line)] px-5 py-5">
       <div className="w-12 h-12 rounded-lg bg-[#16233F] flex items-center justify-center">
         <Icon size={22} className="text-[#EDC31D]" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold tracking-wider text-[#6B6E76] uppercase">
+        <p className="text-[11px] font-semibold tracking-wider text-[var(--muted)] uppercase">
           {label}
         </p>
-        <p className="text-2xl font-bold text-[#16233F]">{value}</p>
+        <p className="text-2xl font-bold text-[var(--ink)]">{value}</p>
       </div>
     </div>
   )
@@ -101,7 +101,7 @@ function StatCard({ icon: Icon, label, value }) {
 /** Brand card — TMC logo + college name (sits next to Passing Rate) */
 function CollegeCard() {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-[#F4F2EA] border border-slate-200 px-5 py-5">
+    <div className="flex items-center gap-4 rounded-xl bg-[var(--panel)] border border-[var(--line)] px-5 py-5">
       <div className="w-12 h-12 rounded-full bg-[#EDC31D] flex items-center justify-center shrink-0">
         <img
           src={logo}
@@ -109,7 +109,7 @@ function CollegeCard() {
           className="w-10 h-10 object-contain"
         />
       </div>
-      <p className="text-sm font-bold text-[#16233F] leading-snug tracking-wide">
+      <p className="text-sm font-bold text-[var(--ink)] leading-snug tracking-wide">
         TRINIDAD MUNICIPAL COLLEGE
       </p>
     </div>
@@ -121,7 +121,7 @@ function StatusBadge({ status }) {
   return (
     <span
       className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
-        passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+        passed ? 'bg-[var(--ok)] text-[var(--ok-text)]' : 'bg-red-100 text-red-600'
       }`}
     >
       {status}
@@ -209,32 +209,32 @@ export default function Dashboard() {
       {/* Recent scoring activity + live system feed */}
       <div className="grid grid-cols-3 gap-5 items-start">
         {/* Left — Recent Scoring Activity table */}
-        <section className="col-span-2 rounded-xl bg-white border border-slate-200 overflow-hidden">
-          <header className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <section className="col-span-2 rounded-xl bg-[var(--card)] border border-[var(--line)] overflow-hidden">
+          <header className="px-5 py-4 border-b border-[var(--line-soft)] flex items-center gap-2">
             <Activity size={16} className="text-[#348BDA]" />
-            <h2 className="text-sm font-bold text-[#16233F]">Recent Scoring Activity</h2>
+            <h2 className="text-sm font-bold text-[var(--ink)]">Recent Scoring Activity</h2>
           </header>
 
           {results.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-[#6B6E76] bg-slate-50">
+                <tr className="text-left text-[11px] uppercase tracking-wider text-[var(--muted)] bg-[var(--fill)]">
                   <th className="px-5 py-3 font-semibold">Applicant</th>
                   <th className="px-5 py-3 font-semibold">Exam</th>
                   <th className="px-5 py-3 font-semibold">Score</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[var(--line-soft)]">
                 {results.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#F4F5F7]">
-                    <td className="px-5 py-3 font-medium text-[#16233F]">
+                  <tr key={r.id} className="hover:bg-[var(--bg)]">
+                    <td className="px-5 py-3 font-medium text-[var(--ink)]">
                       {r.applicant?.applicant_name ?? '—'}
                     </td>
-                    <td className="px-5 py-3 text-slate-600">
+                    <td className="px-5 py-3 text-[var(--muted)]">
                       {r.answer_key?.exam_title ?? '—'}
                     </td>
-                    <td className="px-5 py-3 text-slate-700">
+                    <td className="px-5 py-3 text-[var(--muted)]">
                       {Number(r.score)}
                       {r.total_items ? ` / ${r.total_items}` : ''}
                     </td>
@@ -248,7 +248,7 @@ export default function Dashboard() {
           ) : (
             <div className="py-14 text-center px-6">
               <FileSearch size={40} className="mx-auto text-slate-300" />
-              <p className="mt-3 text-sm text-[#6B6E76]">
+              <p className="mt-3 text-sm text-[var(--muted)]">
                 No scoring activity yet. Scan a sheet on the mobile app to see it here.
               </p>
             </div>
@@ -256,10 +256,10 @@ export default function Dashboard() {
         </section>
 
         {/* Right — System Activity feed (live audit log) */}
-        <section className="rounded-xl bg-white border border-slate-200 overflow-hidden">
-          <header className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <section className="rounded-xl bg-[var(--card)] border border-[var(--line)] overflow-hidden">
+          <header className="px-5 py-4 border-b border-[var(--line-soft)] flex items-center gap-2">
             <Activity size={16} className="text-[#348BDA]" />
-            <h2 className="text-sm font-bold text-[#16233F]">System Activity</h2>
+            <h2 className="text-sm font-bold text-[var(--ink)]">System Activity</h2>
             <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
@@ -268,35 +268,35 @@ export default function Dashboard() {
               onClick={() => load(true)}
               disabled={refreshing}
               title="Refresh now"
-              className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#348BDA] transition-colors disabled:opacity-50"
+              className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors disabled:opacity-50"
             >
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             </button>
           </header>
 
           {loading ? (
-            <p className="px-5 py-8 text-sm text-[#6B6E76]">Loading activity…</p>
+            <p className="px-5 py-8 text-sm text-[var(--muted)]">Loading activity…</p>
           ) : activities.length === 0 ? (
             <div className="py-10 text-center px-6">
               <Activity size={32} className="mx-auto text-slate-300" />
-              <p className="mt-3 text-sm text-[#6B6E76]">
+              <p className="mt-3 text-sm text-[var(--muted)]">
                 No system activity yet. Actions by administrators will appear here.
               </p>
             </div>
           ) : (
             <>
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-[var(--line-soft)]">
                 {activities.map((log) => {
                   const { who, text } = describeAction(log)
                   return (
                     <li key={log.id} className="px-5 py-3.5 flex items-start gap-3">
                       <span className="mt-1.5 w-2 h-2 rounded-full bg-[#348BDA] shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-sm text-slate-700 leading-snug">
-                          <span className="font-semibold text-[#16233F]">{who}</span>{' '}
+                        <p className="text-sm text-[var(--muted)] leading-snug">
+                          <span className="font-semibold text-[var(--ink)]">{who}</span>{' '}
                           {text}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-400">
+                        <p className="mt-0.5 text-xs text-[var(--muted-soft)]">
                           {timeAgo(log.created_at, now)}
                           {log.ip_address ? ` · ${log.ip_address}` : ''}
                         </p>
@@ -305,7 +305,7 @@ export default function Dashboard() {
                   )
                 })}
               </ul>
-              <div className="px-5 py-2.5 border-t border-slate-100 text-[11px] text-slate-400">
+              <div className="px-5 py-2.5 border-t border-[var(--line-soft)] text-[11px] text-[var(--muted-soft)]">
                 {lastUpdated
                   ? `Updated ${timeAgo(lastUpdated.toISOString(), now)}`
                   : 'Auto-refreshes every 5s'}

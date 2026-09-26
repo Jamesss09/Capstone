@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
   KeyRound,
@@ -10,6 +10,8 @@ import {
   LogOut,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../api/client'
+import { applyTheme, getStoredTheme } from '../theme'
 import logo from '../assets/logo.png' // TMC seal
 
 // Title + subtitle per page, shown in the top header strip
@@ -33,8 +35,8 @@ const PAGE_META = {
     subtitle: 'Manage administrator and staff accounts and roles.',
   },
   '/settings': {
-    title: 'Settings',
-    subtitle: 'Configure examination and system-wide settings.',
+    title: 'System Settings',
+    subtitle: 'Configure your examination system preferences.',
   },
   '/audit-logs': {
     title: 'Audit Logs',
@@ -48,11 +50,32 @@ const activeLink = `${baseLink} bg-[#34363E] text-white`
 const idleLink = `${baseLink} text-slate-300 hover:bg-white/5 hover:text-white`
 
 export default function AdminLayout() {
-  const { logout } = useAuth()
+  const { logout, token } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const meta = PAGE_META[pathname] ?? { title: 'Admin', subtitle: '' }
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+
+  // Keep every admin in sync with the system-wide theme setting
+  // (e.g. when another admin changed it). localStorage keeps it instant;
+  // the backend row is the source of truth.
+  useEffect(() => {
+    let cancelled = false
+    api('/settings', { token })
+      .then((rows) => {
+        if (cancelled || !Array.isArray(rows)) return
+        const theme = rows.find((r) => r.setting_key === 'theme')
+        if (theme && theme.setting_value !== getStoredTheme()) {
+          applyTheme(theme.setting_value)
+        }
+      })
+      .catch(() => {
+        /* silent — the stored theme still applies */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   async function confirmLogout() {
     setShowLogoutConfirm(false)
@@ -61,7 +84,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#F4F5F7]">
+    <div className="min-h-screen flex bg-[var(--bg)]">
       {/* ========== Sidebar (dark navy) ========== */}
       <aside className="w-64 shrink-0 bg-[#16233F] text-white flex flex-col sticky top-0 h-screen">
         {/* Brand block */}
@@ -81,7 +104,7 @@ export default function AdminLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-          <p className="px-3 pt-5 pb-1.5 text-[10px] font-semibold tracking-widest text-slate-400">
+          <p className="px-3 pt-5 pb-1.5 text-[10px] font-semibold tracking-widest text-[var(--muted-soft)]">
             ADMIN
           </p>
 
@@ -101,7 +124,7 @@ export default function AdminLayout() {
           </NavLink>
 
           {/* System Management group — indented sub-items */}
-          <p className="px-3 pt-5 pb-1.5 text-[10px] font-semibold tracking-widest text-slate-400">
+          <p className="px-3 pt-5 pb-1.5 text-[10px] font-semibold tracking-widest text-[var(--muted-soft)]">
             SYSTEM MANAGEMENT
           </p>
           <div className="ml-4 space-y-1 border-l border-white/10 pl-3">
@@ -135,15 +158,10 @@ export default function AdminLayout() {
       {/* ========== Right side: header + content ========== */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header strip (light) */}
-        <header className="bg-[#F4F5F7] border-b border-slate-200 px-8 py-4 flex items-center justify-between gap-6">
+        <header className="bg-[var(--bg)] border-b border-[var(--line)] px-8 py-4 flex items-center justify-between gap-6">
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-[#348BDA]">{meta.title}</h1>
             <p className="text-xs text-[#85B3DA] mt-0.5 truncate">{meta.subtitle}</p>
-          </div>
-          <div className="text-right text-xs leading-tight text-slate-500 shrink-0">
-            <p className="font-semibold text-slate-600">Trinidad Municipal College</p>
-            <p>Entrance Examination</p>
-            <p>Scoring System</p>
           </div>
         </header>
 
@@ -160,22 +178,22 @@ export default function AdminLayout() {
           onClick={() => setShowLogoutConfirm(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-white shadow-xl p-6"
+            className="w-full max-w-sm rounded-2xl bg-[var(--card)] shadow-xl p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
                 <LogOut size={18} className="text-red-500" />
               </div>
-              <h2 className="text-base font-bold text-[#16233F]">Log out of Code Nexus?</h2>
+              <h2 className="text-base font-bold text-[var(--ink)]">Log out of Code Nexus?</h2>
             </div>
-            <p className="mt-2 text-sm text-[#6B6E76]">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Are you sure you want to sign out? You'll need to sign in again to continue.
             </p>
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                className="flex-1 rounded-lg border border-[var(--line)] py-2.5 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors"
               >
                 Cancel
               </button>

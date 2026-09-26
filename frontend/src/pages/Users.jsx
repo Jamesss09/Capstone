@@ -24,7 +24,7 @@ function StatusBadge({ active }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-        active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+        active ? 'bg-[var(--ok)] text-[var(--ok-text)]' : 'bg-[var(--fill-strong)] text-[var(--muted)]'
       }`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -61,7 +61,7 @@ function StrengthMeter({ password }) {
   const level = strengthLevel(strengthScore(password))
   return (
     <div className="mt-1.5" aria-live="polite">
-      <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-[var(--fill-strong)] overflow-hidden">
         <div
           className={`h-full ${level.bar} transition-all duration-300`}
           style={{ width: level.width }}
@@ -141,7 +141,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
   }
 
   const inputCls =
-    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-[#16233F] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40'
+    'w-full rounded-lg border border-[var(--line)] bg-[var(--field)] px-3 py-2 text-sm font-medium text-[var(--ink)] placeholder:text-[var(--muted-soft)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40'
 
   return (
     <div
@@ -149,12 +149,12 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
       onClick={!saving ? onClose : undefined}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-md rounded-2xl bg-[var(--card)] shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-[#16233F]">
+            <h2 className="text-lg font-bold text-[var(--ink)]">
               {mode === 'new' ? 'Add New User' : 'Edit User'}
             </h2>
             <p className="text-xs text-[#85B3DA] mt-0.5">
@@ -166,7 +166,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="rounded-lg p-2 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
           >
             <X size={18} />
           </button>
@@ -187,7 +187,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-[#6B6E76] mb-1">Full Name</label>
+            <label className="block text-xs font-semibold text-[var(--muted)] mb-1">Full Name</label>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -198,7 +198,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#6B6E76] mb-1">Username</label>
+              <label className="block text-xs font-semibold text-[var(--muted)] mb-1">Username</label>
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -207,7 +207,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6B6E76] mb-1">Role</label>
+              <label className="block text-xs font-semibold text-[var(--muted)] mb-1">Role</label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
@@ -221,7 +221,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
+              <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                 {mode === 'new' ? 'Password' : 'New Password'}
               </label>
               <input
@@ -233,7 +233,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6B6E76] mb-1">
+              <label className="block text-xs font-semibold text-[var(--muted)] mb-1">
                 Confirm Password
               </label>
               <input
@@ -248,8 +248,8 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
           {password && <StrengthMeter password={password} />}
 
           <div>
-            <label className="block text-xs font-semibold text-[#6B6E76] mb-2">Status</label>
-            <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden">
+            <label className="block text-xs font-semibold text-[var(--muted)] mb-2">Status</label>
+            <div className="inline-flex rounded-lg border border-[var(--line)] overflow-hidden">
               {[true, false].map((active) => (
                 <button
                   key={String(active)}
@@ -258,7 +258,7 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
                   className={`px-5 py-2 text-sm font-bold transition-colors ${
                     isActive === active
                       ? 'bg-[#16233F] text-[#EDC31D]'
-                      : 'bg-white text-slate-500 hover:bg-slate-50'
+                      : 'bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--fill)]'
                   }`}
                 >
                   {active ? 'ACTIVE' : 'INACTIVE'}
@@ -272,14 +272,14 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill-strong)] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2 text-sm font-bold text-[#16233F] shadow-sm transition-colors disabled:opacity-50"
+            className="rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving…' : mode === 'new' ? 'Create User' : 'Save Changes'}
           </button>
@@ -300,16 +300,16 @@ function DeleteConfirm({ user, busy, onCancel, onConfirm }) {
       onClick={!busy ? onCancel : undefined}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white shadow-xl p-6"
+        className="w-full max-w-sm rounded-2xl bg-[var(--card)] shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
             <Trash2 size={18} className="text-red-500" />
           </div>
-          <h2 className="text-base font-bold text-[#16233F]">Delete user?</h2>
+          <h2 className="text-base font-bold text-[var(--ink)]">Delete user?</h2>
         </div>
-        <p className="mt-2 text-sm text-[#6B6E76]">
+        <p className="mt-2 text-sm text-[var(--muted)]">
           “{user.full_name}” ({user.username}) will lose access immediately and cannot sign in.
           This cannot be undone.
         </p>
@@ -317,7 +317,7 @@ function DeleteConfirm({ user, busy, onCancel, onConfirm }) {
           <button
             onClick={onCancel}
             disabled={busy}
-            className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="flex-1 rounded-lg border border-[var(--line)] py-2.5 text-sm font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -386,14 +386,14 @@ export default function Users() {
     <div>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4 mb-6">
-        <p className="text-sm text-[#6B6E76]">
+        <p className="text-sm text-[var(--muted)]">
           {users.length} account{users.length === 1 ? '' : 's'} ·{' '}
           <span className="font-semibold text-emerald-600">{activeCount} active</span>
           <span className="ml-2">· {adminCount} administrator{adminCount === 1 ? '' : 's'}</span>
         </p>
         <button
           onClick={() => setModal({ mode: 'new' })}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
         >
           <Plus size={16} />
           Add New User
@@ -411,24 +411,24 @@ export default function Users() {
       )}
 
       {loading ? (
-        <p className="text-sm text-[#6B6E76]">Loading users…</p>
+        <p className="text-sm text-[var(--muted)]">Loading users…</p>
       ) : users.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-8 py-14 text-center">
+        <div className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--card-soft)] px-8 py-14 text-center">
           <KeyRound size={38} className="mx-auto text-[#85B3DA]" />
-          <h3 className="mt-3 text-base font-bold text-[#16233F]">No user accounts yet</h3>
-          <p className="mt-1 text-sm text-[#6B6E76] max-w-md mx-auto">
+          <h3 className="mt-3 text-base font-bold text-[var(--ink)]">No user accounts yet</h3>
+          <p className="mt-1 text-sm text-[var(--muted)] max-w-md mx-auto">
             Create staff and administrator accounts here. Staff sign in via the mobile app.
           </p>
           <button
             onClick={() => setModal({ mode: 'new' })}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[#16233F] shadow-sm transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#EDC31D] hover:bg-[#e2b814] px-5 py-2.5 text-sm font-bold text-[var(--ink)] shadow-sm transition-colors"
           >
             <Plus size={16} />
             Add New User
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)] shadow-sm">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[#16233F] text-white text-[11px] font-semibold tracking-wider">
@@ -443,12 +443,12 @@ export default function Users() {
               {users.map((u) => {
                 const self = me?.id === u.id
                 return (
-                  <tr key={u.id} className="border-t border-slate-100 hover:bg-slate-50/60">
+                  <tr key={u.id} className="border-t border-[var(--line-soft)] hover:bg-[var(--fill)]">
                     <td className="px-4 py-3">
-                      <p className="text-sm font-bold text-[#16233F]">
+                      <p className="text-sm font-bold text-[var(--ink)]">
                         {u.full_name}
                         {self && (
-                          <span className="ml-2 rounded-full bg-[#F4F2EA] border border-slate-200 px-2 py-0.5 text-[10px] font-bold text-[#6B6E76]">
+                          <span className="ml-2 rounded-full bg-[var(--panel)] border border-[var(--line)] px-2 py-0.5 text-[10px] font-bold text-[var(--muted)]">
                             you
                           </span>
                         )}
@@ -465,7 +465,7 @@ export default function Users() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setModal({ mode: 'edit', user: u })}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-white transition-colors"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--fill)] transition-colors"
                         >
                           <Pencil size={13} />
                           Edit
