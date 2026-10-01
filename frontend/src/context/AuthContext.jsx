@@ -1,22 +1,32 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { api } from '../api/client'
+import { api, setUnauthorizedHandler } from '../api/client'
 
 const AuthContext = createContext(null)
 
-const STORAGE_KEY = 'code-nexus-auth' // localStorage key
+// Older builds persisted the session to web storage, which survived browser
+// restarts and left a bearer token sitting on disk. The session now lives only
+// in memory, so every page load starts at the login screen. These keys are
+// cleared once on boot to retire any leftovers.
+const STALE_KEYS = ['code-nexus-auth']
 
 export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(() => {
-    // Restore session on page refresh (stored as JSON string)
-    const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : null // { token, user }
-  })
+  // Deliberately NOT restored from storage: a page load always starts signed out.
+  const [auth, setAuth] = useState(null) // { token, user } | null
 
-  // Every time auth changes, persist it
+  // Purge session/token left behind by older builds.
   useEffect(() => {
-    if (auth) localStorage.setItem(STORAGE_KEY, JSON.stringify(auth))
-    else localStorage.removeItem(STORAGE_KEY)
-  }, [auth])
+    for (const key of STALE_KEYS) {
+      localStorage.removeItem(key)
+      sessionStorage.removeItem(key)
+    }
+  }, [])
+
+  // A 401 from any page means the token is dead (revoked, or the account was
+  // deactivated mid-session). Clear it so the guard bounces the user to login.
+  useEffect(() => {
+    setUnauthorizedHandler(() => setAuth(null))
+    return () => setUnauthorizedHandler(null)
+  }, [])
 
   /** Call from the login form. Throws Error on failure. */
   async function login(login, password) {

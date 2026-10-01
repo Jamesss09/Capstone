@@ -10,7 +10,6 @@ export default function Login() {
 
   const [credentials, setCredentials] = useState({ login: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -133,17 +132,6 @@ export default function Login() {
             </button>
           </div>
         </div>
-
-        {/* Remember me */}
-        <label className="flex items-center gap-2 text-sm text-[#6B6E76] cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 accent-[#16233F]"
-          />
-          Remember me
-        </label>
 
         {/* Dark navy Sign In button, gold text per prototype */}
         <button
