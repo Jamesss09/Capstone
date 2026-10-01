@@ -2,6 +2,8 @@
 
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
         // (none exists). Unauthenticated requests become a JSON 401 instead
         // of crashing with "Route [login] not defined".
         Authenticate::redirectUsing(fn () => null);
+
+        // The refresh token is an httpOnly cookie, but cookie middleware only
+        // ships in the 'web' group — without these on 'api', Cookie::queue() in
+        // AuthController is silently dropped and no Set-Cookie is ever emitted.
+        // EncryptCookies also keeps the raw Sanctum token from sitting in
+        // browser storage in plaintext. Order matters: the queued-cookie
+        // middleware is inner, so cookies are attached before encryption runs.
+        $middleware->api(append: [
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+        ]);
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,

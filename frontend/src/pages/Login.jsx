@@ -10,6 +10,7 @@ export default function Login() {
 
   const [credentials, setCredentials] = useState({ login: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -24,7 +25,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const user = await login(credentials.login, credentials.password)
+      const user = await login(credentials.login, credentials.password, remember)
 
       // The web app is admin-only — staff sign in via the mobile app.
       // (The same API authenticates both; we reject staff here on the web.)
@@ -132,6 +133,17 @@ export default function Login() {
             </button>
           </div>
         </div>
+
+        {/* Remember me — extends the httpOnly refresh cookie past browser close */}
+        <label className="flex items-center gap-2 text-sm text-[#6B6E76] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 accent-[#16233F]"
+          />
+          Remember Me
+        </label>
 
         {/* Dark navy Sign In button, gold text per prototype */}
         <button

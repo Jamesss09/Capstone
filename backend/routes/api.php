@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Route;
 // Public: staff & admin login
 Route::post('/login', [AuthController::class, 'login']);
 
+// Public: exchange the httpOnly refresh cookie for a new access token. The
+// access token has expired by design, so this cannot sit behind auth:sanctum.
+Route::post('/refresh', [AuthController::class, 'refresh']);
+
 // Authenticated
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

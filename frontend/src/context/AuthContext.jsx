@@ -1,17 +1,28 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { api, setUnauthorizedHandler } from '../api/client'
+import {
+  api,
+  getAccessToken,
+  onTokenChangeListener,
+  refreshSession,
+  setUnauthorizedHandler,
+  storeAccessToken,
+} from '../api/client'
 
 const AuthContext = createContext(null)
 
-// Older builds persisted the session to web storage, which survived browser
-// restarts and left a bearer token sitting on disk. The session now lives only
-// in memory, so every page load starts at the login screen. These keys are
-// cleared once on boot to retire any leftovers.
+// Older builds kept a bearer token in web storage. Tokens now live in an
+// httpOnly cookie plus module memory, so anything left over is a leftover
+// credential worth deleting.
 const STALE_KEYS = ['code-nexus-auth']
 
 export function AuthProvider({ children }) {
-  // Deliberately NOT restored from storage: a page load always starts signed out.
+  // The access token is not restored from storage — it lives in the API client.
+  // This holds the user profile + the token for render-time reads.
   const [auth, setAuth] = useState(null) // { token, user } | null
+
+  // True while we try to restore a session from the httpOnly refresh cookie.
+  // Routes must wait, or "/" would flash the login screen before redirecting.
+  const [initializing, setInitializing] = useState(true)
 
   // Purge session/token left behind by older builds.
   useEffect(() => {
@@ -21,30 +32,64 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // A 401 from any page means the token is dead (revoked, or the account was
-  // deactivated mid-session). Clear it so the guard bounces the user to login.
+  // Boot: trade the refresh cookie for a fresh access token. Success means the
+  // user is still signed in; failure means show the login screen.
+  useEffect(() => {
+    let cancelled = false
+
+    refreshSession()
+      .then((data) => {
+        if (cancelled) return
+        setAuth({ token: data.token, user: data.user })
+      })
+      .catch(() => {
+        if (!cancelled) setAuth(null) // no cookie, or it expired/rotated out
+      })
+      .finally(() => {
+        if (!cancelled) setInitializing(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Keep the context token in step with silent background refreshes so pages
+  // that read `token` don't hold a stale value.
+  useEffect(
+    () =>
+      onTokenChangeListener((token) => {
+        setAuth((prev) => (prev && token ? { ...prev, token } : prev))
+      }),
+    [],
+  )
+
+  // A 401 that survives a refresh attempt means the session is truly over.
   useEffect(() => {
     setUnauthorizedHandler(() => setAuth(null))
     return () => setUnauthorizedHandler(null)
   }, [])
 
   /** Call from the login form. Throws Error on failure. */
-  async function login(login, password) {
+  async function login(login, password, remember = false) {
     const data = await api('/login', {
       method: 'POST',
-      body: { login, password },
+      body: { login, password, remember },
     })
-    setAuth(data) // { token, user }
+    storeAccessToken(data.token) // so the retry path always has a fresh token
+    setAuth({ token: data.token, user: data.user })
     return data.user
   }
 
   /** Call from the logout button. */
   async function logout() {
     try {
-      await api('/logout', { method: 'POST', token: auth?.token })
+      await api('/logout', { method: 'POST', token: getAccessToken() })
     } catch {
       // token may already be invalid — ignore
     }
+    // Server also revokes the refresh token and clears its cookie.
+    storeAccessToken(null)
     setAuth(null)
   }
 
@@ -55,6 +100,7 @@ export function AuthProvider({ children }) {
         user: auth?.user ?? null,
         isAuthenticated: !!auth,
         isAdmin: auth?.user?.role === 'Administrator',
+        initializing,
         login,
         logout,
       }}

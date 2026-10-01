@@ -19,8 +19,24 @@ function AdminPages() {
   return <AdminLayout />
 }
 
+/**
+ * Shown while the app trades the httpOnly refresh cookie for an access token.
+ * Rendering sooner would flash the login screen at someone who is still
+ * signed in, then immediately bounce them to the dashboard.
+ */
+function BootSplash() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F1F2F4] px-4">
+      <p className="text-sm font-medium text-[#16233F]">Restoring session…</p>
+    </div>
+  )
+}
+
 function AppRoutes() {
-  const { isAuthenticated, isAdmin } = useAuth()
+  const { isAuthenticated, isAdmin, initializing } = useAuth()
+
+  if (initializing) return <BootSplash />
+
   const ok = isAuthenticated && isAdmin
 
   return (

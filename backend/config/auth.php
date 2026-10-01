@@ -114,4 +114,21 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Token Lifetimes
+    |--------------------------------------------------------------------------
+    |
+    | The web app uses a short-lived "access" token for API calls plus a
+    | long-lived "refresh" token kept in an httpOnly cookie. When the access
+    | token expires (or is revoked) the client silently exchanges the refresh
+    | token for a new one, so an open tab survives without re-login, while a
+    | stolen access token dies on its own within ACCESS_TOKEN_TTL_MINUTES.
+    |
+    */
+
+    'access_token_ttl_minutes' => (int) env('ACCESS_TOKEN_TTL_MINUTES', 15),
+
+    'refresh_token_ttl_days' => (int) env('REFRESH_TOKEN_TTL_DAYS', 7),
+
 ];
