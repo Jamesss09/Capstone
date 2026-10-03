@@ -60,7 +60,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - Folder `school_year` must match `SY YYYY-YYYY` (e.g. `SY 2026-2027`; the `SY` prefix is optional on input)
 - `tbl_examination_applicants.student_type` added (Phase 3) for the sheet-header types NEW / TRANSFEREE / OLD / RETURNEE
 - Passwords stored via bcrypt (`password_hash`)
-- MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus`/`nexus_pass`, root `root_pass`)
+- MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus` / root — see root `.env`, never commit real passwords)
 
 ## Error handling (API-first)
 - Unauthenticated `/api/*` → **401** JSON `{"message":"Unauthenticated."}` — no redirect (fixed the `Route [login] not defined` 500 for clients without a JSON `Accept` header)
