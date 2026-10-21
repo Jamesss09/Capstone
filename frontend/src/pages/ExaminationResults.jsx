@@ -24,7 +24,29 @@ import { CardSkeleton, TableSkeleton } from '../components/Skeleton'
 const STUDENT_TYPES = ['NEW', 'TRANSFEREE', 'OLD', 'RETURNEE']
 
 // Courses offered at TMC (fixed filter list)
-const COURSES = ['BSIT', 'BSCRIM', 'BSED', 'BSOA', 'BEED', 'BAPOLSCI', 'BACOM']
+const COURSES = ['BSIT', 'BA POLSCI', 'BEED', 'BSED', 'BSCRIM', 'BSOA']
+
+// Stored course values are free text ('BS Information Technology') while the
+// filter uses abbreviations ('BSIT') — match either spelling so the filter
+// works regardless of how the course was originally typed.
+const COURSE_ALIASES = {
+  BSIT: ['bachelor of science in information technology', 'bs information technology', 'bs in information technology'],
+  'BA POLSCI': ['bachelor of arts in political science', 'ba political science', 'bapolsci'],
+  BEED: ['bachelor of elementary education', 'be elementary education', 'bs elementary education'],
+  BSED: ['bachelor of secondary education', 'bs secondary education', 'bs education'],
+  BSCRIM: ['bachelor of science in criminology', 'bs criminology', 'bs in criminology'],
+  BSOA: ['bachelor of science in office administration', 'bs office administration'],
+}
+
+const normCourse = (s) => String(s ?? '').trim().toLowerCase().replace(/\./g, '')
+
+function matchesCourse(stored, selected) {
+  if (!selected) return true
+  const value = normCourse(stored)
+  if (!value) return false
+  if (value === normCourse(selected)) return true
+  return (COURSE_ALIASES[selected] ?? []).some((a) => value === normCourse(a))
+}
 
 // Display code like the prototype: EXM-0001
 function examId(id) {
@@ -42,12 +64,24 @@ function formatDate(iso) {
   })
 }
 
+// Course priority: the snapshot on the result, then the course chosen when the
+// applicant was identified, then the legacy folder-level course.
+function courseOf(result) {
+  return (
+    result?.course ||
+    result?.applicant?.course ||
+    result?.applicant?.folder?.course ||
+    ''
+  )
+}
+
 function downloadCsv(rows, folder) {
-  const header = 'Applicant,Examinee ID,Exam Date,Score,Total Items,Status'
+  const header = 'Applicant,Examinee ID,Course,Exam Date,Score,Total Items,Status'
   const lines = rows.map((r) =>
     [
       r.applicant?.applicant_name ?? '',
       examId(r.applicant_id),
+      courseOf(r),
       r.applicant?.examination_date ?? '',
       Number(r.score).toFixed(2),
       r.total_items ?? '',
@@ -56,15 +90,17 @@ function downloadCsv(rows, folder) {
       .map((c) => `"${String(c).replace(/"/g, '""')}"`)
       .join(',')
   )
-  const blob = new Blob([header, ...lines].join('\n'), {
+  const blob = new Blob(['\uFEFF' + [header, ...lines].join('\r\n')], {
     type: 'text/csv;charset=utf-8',
   })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = `results-${(folder?.school_year ?? 'export').replace(/\s+/g, '-')}.csv`
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 // Brand colors for the PDF header/footer (nave #16233F, beige #F4F2EA, muted #6B6E76)
@@ -95,10 +131,11 @@ function downloadPdf(rows, folder) {
 
       autoTable(doc, {
         startY: 30,
-        head: [['Applicant', 'Examinee ID', 'Exam Date', 'Score', 'Total Items', 'Status']],
+        head: [['Applicant', 'Examinee ID', 'Course', 'Exam Date', 'Score', 'Total Items', 'Status']],
         body: rows.map((r) => [
           r.applicant?.applicant_name ?? '',
           examId(r.applicant_id),
+          courseOf(r),
           r.applicant?.examination_date ?? '',
           Number(r.score).toFixed(2),
           r.total_items ?? '',
@@ -110,8 +147,8 @@ function downloadPdf(rows, folder) {
         foot: [[`${rows.length} result${rows.length === 1 ? '' : 's'}`]],
         footStyles: { fillColor: PDF_BEIGE, textColor: PDF_NAVY, fontStyle: 'bold' },
         didParseCell: (data) => {
-          // Color-code the Status column (index 5 of body rows)
-          if (data.section === 'body' && data.column.index === 5) {
+          // Color-code the Status column (index 6 of body rows)
+          if (data.section === 'body' && data.column.index === 6) {
             const status = String(data.cell.raw)
             data.cell.styles.textColor =
               status === 'Passed' ? PDF_PASS : status === 'Failed' ? PDF_FAIL : PDF_MUTED
@@ -385,7 +422,7 @@ function ResultDetail({ result, onClose }) {
     ['Applicant', applicant.applicant_name],
     ['Examinee ID', examId(result.applicant_id)],
     ['Student Type', applicant.student_type || '—'],
-    ['Course', applicant.folder?.course || '—'],
+    ['Course', courseOf(result) || '—'],
     ['Exam Date', formatDate(applicant.examination_date)],
     ['Answer Key', ak.exam_title || '—'],
     ['Total Items', result.total_items],
@@ -506,7 +543,7 @@ function FolderResults({ folderId }) {
       const name = (r.applicant?.applicant_name ?? '').toLowerCase()
       const id = examId(r.applicant_id).toLowerCase()
       if (q && !name.includes(q) && !id.includes(q)) return false
-      if (filters.course && (r.applicant?.folder?.course ?? '') !== filters.course) return false
+      if (filters.course && !matchesCourse(courseOf(r), filters.course)) return false
       if (filters.studentType && (r.applicant?.student_type ?? '') !== filters.studentType)
         return false
       if (filters.status && r.status !== filters.status) return false
@@ -542,7 +579,7 @@ function FolderResults({ folderId }) {
       )}
 
       {loading ? (
-        <TableSkeleton cols={6} rows={8} />
+        <TableSkeleton cols={7} rows={8} />
       ) : (
         <>
           {/* Filter bar */}
@@ -649,12 +686,13 @@ function FolderResults({ folderId }) {
               </button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)] shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-[var(--line)] bg-[var(--card)] shadow-sm">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[#16233F] text-white text-[11px] font-semibold tracking-wider">
                     <th className="px-4 py-3">Applicant</th>
                     <th className="px-4 py-3">Examinee ID</th>
+                    <th className="px-4 py-3">Course</th>
                     <th className="px-4 py-3">Exam Date</th>
                     <th className="px-4 py-3">Score</th>
                     <th className="px-4 py-3">Status</th>
@@ -676,6 +714,9 @@ function FolderResults({ folderId }) {
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-[#348BDA]">
                         {examId(r.applicant_id)}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-[var(--ink)]">
+                        {courseOf(r) || '—'}
                       </td>
                       <td className="px-4 py-3 text-sm text-[var(--muted)]">
                         {formatDate(r.applicant?.examination_date)}

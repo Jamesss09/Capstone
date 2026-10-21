@@ -14,6 +14,7 @@ class ExaminationResult extends Model
         'answer_key_id',
         'score',
         'status',
+        'course',
         'total_items',
         'correct_count',
         'incorrect_count',
@@ -29,6 +30,20 @@ class ExaminationResult extends Model
             'passing_score' => 'decimal:2',
             'computed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Snapshot the course chosen when the applicant was identified. Result
+        // writers (mobile save, OMR pipeline) don't need to pass it
+        // explicitly, but an explicit value still wins.
+        static::creating(function (ExaminationResult $result) {
+            if (blank($result->course) && $result->applicant_id) {
+                $result->course = ExaminationApplicant::query()
+                    ->whereKey($result->applicant_id)
+                    ->value('course');
+            }
+        });
     }
 
     public function applicant(): BelongsTo

@@ -45,7 +45,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | --- | --- | --- |
 | POST | `/sheets/upload` | multipart: `applicant_id` + `image` (jpeg/png) → creates sheet + queued OMR job |
 | GET | `/omr-jobs/{job}` | job status |
-| GET/POST | `/applicants` | list (filters: folder_id, status) / create |
+| GET/POST | `/applicants` | list (filters: folder_id, status) / create — **`course` is required**; `student_type` optional (`NEW`/`TRANSFEREE`/`OLD`/`RETURNEE`) |
 | GET/PUT/DELETE | `/applicants/{applicant}` | show (with sheet+answers+result) / update / delete |
 | GET | `/results` | list (filters: `folder_id`, `status`, `answer_key_id`, `course`, `student_type`, `search` — name **or** examinee ID) |
 | GET | `/results/{result}` | detail (with applicant, answer key, sheet + answers) |
@@ -59,6 +59,8 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - All state-changing actions write `tbl_audit_logs`
 - Folder `school_year` must match `SY YYYY-YYYY` (e.g. `SY 2026-2027`; the `SY` prefix is optional on input)
 - `tbl_examination_applicants.student_type` added (Phase 3) for the sheet-header types NEW / TRANSFEREE / OLD / RETURNEE
+- `POST /applicants` requires `course` (the mobile Identify Applicant screen's **Course to Enroll**); subjects offered: `BSIT`, `BA POLSCI`, `BEED`, `BSED`, `BSCRIM`, `BSOA`
+- `tbl_examination_applicants.course` is chosen at identification time; `tbl_examination_results.course` snapshots it when the result row is created, so the admin results table/export shows it
 - Passwords stored via bcrypt (`password_hash`)
 - MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus` / root — see root `.env`, never commit real passwords)
 

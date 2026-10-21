@@ -12,7 +12,7 @@ class ResultController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = ExaminationResult::with([
-            'applicant:id,folder_id,applicant_name,student_type,examination_date',
+            'applicant:id,folder_id,applicant_name,student_type,course,examination_date',
             'answerKey:id,exam_title,passing_score',
             'applicant.folder:id,course,school_year',
         ]);
@@ -30,7 +30,15 @@ class ResultController extends Controller
         }
 
         if ($request->filled('course')) {
-            $query->whereHas('applicant.folder', fn ($q) => $q->where('course', $request->string('course')));
+            // Course lives on the result row (snapshot) and on the applicant
+            // (chosen when identified). Fall back to the applicant's folder
+            // for rows written before the result column existed.
+            $course = (string) $request->string('course');
+            $query->where(function ($q) use ($course) {
+                $q->where('tbl_examination_results.course', $course)
+                    ->orWhereHas('applicant', fn ($qq) => $qq->where('course', $course))
+                    ->orWhereHas('applicant.folder', fn ($qq) => $qq->where('course', $course));
+            });
         }
 
         if ($request->filled('student_type')) {

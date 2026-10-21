@@ -32,6 +32,9 @@ class ApplicantController extends Controller
             'applicant_name' => 'required|string|max:255',
             'examination_date' => 'required|date',
             'status' => 'sometimes|in:Pending,Processed',
+            'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
+            // Chosen by staff on the mobile Identify Applicant screen.
+            'course' => 'required|string|max:100',
         ]);
 
         $applicant = ExaminationApplicant::create([
@@ -55,6 +58,8 @@ class ApplicantController extends Controller
             'applicant_name' => 'sometimes|string|max:255',
             'examination_date' => 'sometimes|date',
             'status' => 'sometimes|in:Pending,Processed',
+            'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
+            'course' => 'sometimes|required|string|max:100',
         ]);
 
         $applicant->update($data);

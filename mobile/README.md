@@ -6,7 +6,7 @@ Phase 4 component: staff scan answer sheets with the phone camera.
 - Staff Login
 - Home Scanner
 - Scan Answer Sheet (capture + preview)
-- Identify Applicant
+- Identify Applicant — sends `course` (**required**, e.g. `BSIT`) and `student_type` (`NEW` / `TRANSFEREE` / `OLD` / `RETURNEE`) to `POST /applicants`; the result row snapshots `course` for the admin results table/export
 - Processing / status
 - Order (flow guide)
 - View Result
