@@ -43,6 +43,9 @@ Thumbs.db
 storage/app/uploads/*
 !storage/app/uploads/.gitignore
 
+# OMR dataset (raw sheets, crops, manifests)
+omr/dataset/
+
 # Test artifacts
 .phpunit.result.cache
 coverage/

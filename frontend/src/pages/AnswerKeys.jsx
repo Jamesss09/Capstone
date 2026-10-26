@@ -25,16 +25,34 @@ import { CardSkeleton, FormSkeleton } from '../components/Skeleton'
 
 // Standard sections of the TMC entrance exam answer sheet
 const SECTION_PRESETS = [
-  { name: 'Inductive/Logical Test', count: 10, options: 'A-E' },
-  { name: 'Mathematics', count: 30, options: 'A-D' },
-  { name: 'English', count: 30, options: 'A-D' },
-  { name: 'Science & Technology', count: 20, options: 'A-D' },
-  { name: 'Aptitude', count: 10, options: 'A-D' },
+  { id: 'inductive', name: 'Inductive / Logical Test', count: 10, options: 'A-E', aliases: ['Inductive/Logical Test', 'Inductive Logical Test'] },
+  { id: 'math', name: 'Mathematics', count: 30, options: 'A-D', aliases: ['Math'] },
+  { id: 'english', name: 'English', count: 30, options: 'A-D', aliases: [] },
+  { id: 'science', name: 'Science & Technology', count: 20, options: 'A-D', aliases: ['Science and Technology'] },
+  { id: 'aptitude', name: 'Aptitude', count: 10, options: 'A-D', aliases: [] },
 ]
 
 const CHOICES = {
   'A-D': ['A', 'B', 'C', 'D'],
   'A-E': ['A', 'B', 'C', 'D', 'E'],
+}
+
+function sectionKey(value) {
+  return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+const SECTION_BY_ALIAS = new Map(
+  SECTION_PRESETS.flatMap((section) =>
+    [section.id, section.name, ...section.aliases].map((alias) => [sectionKey(alias), section])
+  )
+)
+
+function sectionPreset(value) {
+  return SECTION_BY_ALIAS.get(sectionKey(value)) ?? null
+}
+
+function sectionDisplayName(value) {
+  return sectionPreset(value)?.name ?? String(value || 'Uncategorized')
 }
 
 // Display code like the prototype: AK-2026-001 (year from school year + id)
@@ -45,7 +63,7 @@ function keyCode(ak, includeYear = true) {
 }
 
 function blankSections() {
-  return SECTION_PRESETS.map((p) => ({ ...p, answers: Array(p.count).fill(null) }))
+  return SECTION_PRESETS.map((section) => ({ ...section, answers: Array(section.count).fill(null) }))
 }
 
 function plural(n, word) {
@@ -78,7 +96,7 @@ function KeyCard({ ak, busy, onEdit, onActivate, onDeactivate, onDelete }) {
   const sections = useMemo(() => {
     const map = new Map()
     for (const it of ak.items ?? []) {
-      const name = it.section || 'Uncategorized'
+      const name = sectionDisplayName(it.section)
       map.set(name, (map.get(name) || 0) + 1)
     }
     return Array.from(map.entries())
@@ -266,11 +284,11 @@ const JSON_TEMPLATE = JSON.stringify(
     school_year: 'SY 2026-2027',
     passing_score: 75,
     sections: [
-      { name: 'Inductive/Logical Test', items: 10, choices: 'A-E', answers: ['', '', '', '', '', '', '', '', '', ''] },
-      { name: 'Mathematics', items: 30, choices: 'A-D', answers: [] },
-      { name: 'English', items: 30, choices: 'A-D', answers: [] },
-      { name: 'Science & Technology', items: 20, choices: 'A-D', answers: [] },
-      { name: 'Aptitude', items: 10, choices: 'A-D', answers: [] },
+      { id: 'inductive', name: 'Inductive / Logical Test', items: 10, choices: 'A-E', answers: ['', '', '', '', '', '', '', '', '', ''] },
+      { id: 'math', name: 'Mathematics', items: 30, choices: 'A-D', answers: [] },
+      { id: 'english', name: 'English', items: 30, choices: 'A-D', answers: [] },
+      { id: 'science', name: 'Science & Technology', items: 20, choices: 'A-D', answers: [] },
+      { id: 'aptitude', name: 'Aptitude', items: 10, choices: 'A-D', answers: [] },
     ],
   },
   null,
@@ -278,12 +296,12 @@ const JSON_TEMPLATE = JSON.stringify(
 )
 
 const CSV_TEMPLATE = [
-  'Section Name,Items,Choices,Answers',
-  'Inductive/Logical Test,10,A-E,',
-  'Mathematics,30,A-D,',
-  'English,30,A-D,',
-  'Science & Technology,20,A-D,',
-  'Aptitude,10,A-D,',
+  'Section ID,Section Name,Items,Choices,Answers',
+  'inductive,Inductive / Logical Test,10,A-E,',
+  'math,Mathematics,30,A-D,',
+  'english,English,30,A-D,',
+  'science,Science & Technology,20,A-D,',
+  'aptitude,Aptitude,10,A-D,',
 ].join('\n')
 
 function download(filename, content, type = 'application/json') {
@@ -321,24 +339,29 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
         setPassingScore(String(Number(key.passing_score)))
         const items = key.items ?? []
         const bySection = new Map()
+        const unknownSections = new Set()
         for (const it of items) {
-          const name = it.section || 'General'
-          if (!bySection.has(name)) bySection.set(name, [])
-          bySection.get(name).push(it)
-        }
-        const built = Array.from(bySection.entries()).map(([name, list]) => {
-          list.sort((a, b) => a.item_number - b.item_number)
-          const hasE = list.some((i) => i.correct_answer === 'E')
-          return {
-            name,
-            count: list.length,
-            options: hasE ? 'A-E' : 'A-D',
-            answers: list.map((i) => i.correct_answer),
+          const section = sectionPreset(it.section)
+          if (!section) {
+            unknownSections.add(it.section || '(blank)')
+            continue
           }
+          if (!bySection.has(section.id)) bySection.set(section.id, [])
+          bySection.get(section.id).push(it)
+        }
+        const built = SECTION_PRESETS.map((section) => {
+          const answers = Array(section.count).fill(null)
+          for (const item of bySection.get(section.id) ?? []) {
+            const index = item.item_number - 1
+            if (index >= 0 && index < section.count) answers[index] = item.correct_answer
+          }
+          return { ...section, answers }
         })
-        const secs = built.length > 0 ? built : blankSections()
-        setSections(secs)
-        setExpanded(new Set(secs.map((_, i) => i))) // expand answers in edit mode
+        if (unknownSections.size > 0) {
+          setError(`This key has unsupported section data: ${Array.from(unknownSections).join(', ')}. Migrate it before editing.`)
+        }
+        setSections(built)
+        setExpanded(new Set(built.map((_, i) => i))) // expand answers in edit mode
       })
       .catch((e) => setError(e.message))
       .finally(() => setReady(true))
@@ -350,47 +373,12 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
   const allAnswered = answered === totalItems
   const missing = totalItems - answered
 
-  function updateSection(idx, patch) {
-    setSections((prev) =>
-      prev.map((s, i) => {
-        if (i !== idx) return s
-        let next = { ...s, ...patch }
-        if (patch.count !== undefined) {
-          const n = Math.max(0, Number(patch.count) || 0)
-          next.count = n
-          next.answers = Array.from({ length: n }, (_, k) => s.answers[k] ?? null)
-        }
-        if (patch.options && patch.options !== s.options) {
-          const letters = CHOICES[patch.options]
-          next.answers = s.answers.map((a) => (a && letters.includes(a) ? a : null))
-        }
-        return next
-      })
-    )
-  }
-
   function setAnswer(idx, itemIdx, value) {
     setSections((prev) =>
       prev.map((s, i) =>
         i === idx ? { ...s, answers: s.answers.map((a, k) => (k === itemIdx ? value : a)) } : s
       )
     )
-  }
-
-  function addSection() {
-    setSections((prev) => [
-      ...prev,
-      { name: `Section ${prev.length + 1}`, count: 10, options: 'A-D', answers: Array(10).fill(null) },
-    ])
-  }
-
-  function removeSection(idx) {
-    setSections((prev) => prev.filter((_, i) => i !== idx))
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      next.delete(idx)
-      return next
-    })
   }
 
   function toggleExpand(idx) {
@@ -423,49 +411,77 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
 
   function applyImport(text, filename) {
     const isJson = /\.json$/i.test(filename)
-    let secs = []
+    const imported = new Map()
+
+    function addImportedSection(idValue, nameValue, countRaw, choicesRaw, rawAnswers) {
+      const preset = sectionPreset(idValue || nameValue)
+      if (!preset) throw new Error(`Unknown section "${idValue || nameValue}".`)
+      if (imported.has(preset.id)) throw new Error(`Section "${preset.name}" appears more than once.`)
+
+      if (countRaw !== undefined && countRaw !== null && Number(countRaw) !== preset.count) {
+        throw new Error(`${preset.name} must contain exactly ${preset.count} items.`)
+      }
+      if (choicesRaw && choicesRaw !== preset.options) {
+        throw new Error(`${preset.name} uses ${preset.options} choices.`)
+      }
+
+      const source = Array.isArray(rawAnswers)
+        ? rawAnswers
+        : String(rawAnswers ?? '').replace(/[^a-eA-E]/g, '').toUpperCase().split('')
+      if (source.slice(preset.count).some((answer) => String(answer ?? '').trim())) {
+        throw new Error(`${preset.name} contains more than ${preset.count} answers.`)
+      }
+      const answers = Array.from({ length: preset.count }, (_, index) => {
+        const answer = source[index] && String(source[index]).trim().toUpperCase()
+        if (answer && !CHOICES[preset.options].includes(answer)) {
+          throw new Error(`${preset.name} item ${index + 1} cannot use answer ${answer}.`)
+        }
+        return answer || null
+      })
+      imported.set(preset.id, { ...preset, answers })
+    }
+
     if (isJson) {
       const data = JSON.parse(text)
       if (data.exam_title) setTitle(data.exam_title)
       if (data.school_year) setSchoolYear(data.school_year)
       if (data.passing_score !== undefined) setPassingScore(String(Number(data.passing_score)))
       const src = Array.isArray(data.sections) ? data.sections : []
-      secs = src.map((s) => ({
-        name: s.name || 'General',
-        count: Math.max(0, Number(s.items ?? s.count) || 0),
-        options: s.choices === 'A-E' || s.options === 'A-E' ? 'A-E' : 'A-D',
-        answers: Array.from(
-          { length: Math.max(0, Number(s.items ?? s.count) || 0) },
-          (_, k) => {
-            const a = (s.answers ?? [])[k]
-            return a && String(a).trim() ? String(a).trim().toUpperCase() : null
-          }
-        ),
-      }))
+      for (const section of src) {
+        addImportedSection(
+          section.id ?? section.section,
+          section.name,
+          section.items ?? section.count,
+          section.choices ?? section.options,
+          section.answers
+        )
+      }
     } else {
-      // CSV: header + rows (Section Name,Items,Choices,Answers)
       const rows = text
         .split(/\r?\n/)
         .map((r) => r.trim())
         .filter(Boolean)
-        .slice(1) // skip header row
-      secs = rows.map((row) => {
-        const [name, itemsRaw, choicesRaw, answersRaw = ''] = row.split(',').map((c) => c.trim())
-        const n = Math.max(0, Number(itemsRaw) || 0)
-        const letters = String(answersRaw).replace(/[^a-eA-E]/g, '').toUpperCase().split('')
-        const answers = Array.from({ length: n }, (_, k) => letters[k] ?? null)
-        return {
-          name: name || 'General',
-          count: n,
-          options: choicesRaw === 'A-E' ? 'A-E' : 'A-D',
-          answers,
+      const header = rows.shift()?.split(',').map((cell) => cell.trim()) ?? []
+      const hasSectionId = sectionKey(header[0]) === 'sectionid'
+      for (const row of rows) {
+        const cells = row.split(',').map((cell) => cell.trim())
+        if (hasSectionId) {
+          const [id, name, items, choices, answers = ''] = cells
+          addImportedSection(id, name, items, choices, answers)
+        } else {
+          const [name, items, choices, answers = ''] = cells
+          addImportedSection(undefined, name, items, choices, answers)
         }
-      })
+      }
     }
-    if (secs.length === 0) {
+    if (imported.size === 0) {
       setError('No sections found in the imported file. Use the template as a guide.')
       return
     }
+    const secs = SECTION_PRESETS.map((preset) => imported.get(preset.id) ?? {
+      ...preset,
+      answers: Array(preset.count).fill(null),
+    })
     setSections(secs)
     setExpanded(new Set(secs.map((_, i) => i)))
     const total = secs.reduce((n, s) => n + s.count, 0)
@@ -490,7 +506,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
           const a = s.answers[i]
           if (a) {
             items.push({
-              section: s.name.trim() || 'General',
+              section: s.id,
               item_number: i + 1,
               correct_answer: a,
               points: 1,
@@ -671,13 +687,6 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                       {answered} answered
                     </p>
                   </div>
-                  <button
-                    onClick={addSection}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#348BDA] px-3 py-2 text-xs font-bold text-[#348BDA] hover:bg-[#348BDA]/10 transition-colors"
-                  >
-                    <Plus size={14} />
-                    Add Section
-                  </button>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)]">
@@ -688,7 +697,7 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                         <th className="px-3 py-2.5 w-24">Items</th>
                         <th className="px-3 py-2.5 w-28">Choices</th>
                         <th className="px-3 py-2.5 w-24">Answered</th>
-                        <th className="px-2 py-2.5 w-16 text-right">Actions</th>
+                         <th className="px-2 py-2.5 w-16 text-right">Answers</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -696,35 +705,18 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                         const secAnswered = s.answers.filter(Boolean).length
                         const isOpen = expanded.has(idx)
                         return (
-                          <Fragment key={idx}>
+                          <Fragment key={s.id}>
                             <tr className="border-t border-[var(--line-soft)] hover:bg-[var(--fill)]">
                               <td className="px-4 py-2.5">
-                                <input
-                                  value={s.name}
-                                  onChange={(e) => updateSection(idx, { name: e.target.value })}
-                                  placeholder="Section name"
-                                  className="w-full rounded-md border border-[var(--line)] px-2.5 py-1.5 text-sm font-medium text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40 focus:border-[#348BDA]"
-                                />
+                                <span className="text-sm font-medium text-[var(--ink)]">{s.name}</span>
                               </td>
                               <td className="px-3 py-2.5">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={200}
-                                  value={s.count}
-                                  onChange={(e) => updateSection(idx, { count: e.target.value })}
-                                  className="w-16 rounded-md border border-[var(--line)] px-2 py-1.5 text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
-                                />
+                                <span className="text-sm font-semibold text-[var(--ink)]">{s.count}</span>
                               </td>
                               <td className="px-3 py-2.5">
-                                <select
-                                  value={s.options}
-                                  onChange={(e) => updateSection(idx, { options: e.target.value })}
-                                  className="rounded-md border border-[var(--line)] px-2 py-1.5 text-sm font-semibold text-[var(--ink)] focus:outline-none focus:ring-2 focus:ring-[#348BDA]/40"
-                                >
-                                  <option value="A-D">A–D (4)</option>
-                                  <option value="A-E">A–E (5)</option>
-                                </select>
+                                <span className="text-sm font-semibold text-[var(--ink)]">
+                                  {s.options === 'A-E' ? 'A–E (5)' : 'A–D (4)'}
+                                </span>
                               </td>
                               <td className="px-3 py-2.5">
                                 <span
@@ -745,13 +737,6 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                     className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-[var(--fill-strong)] hover:text-[#348BDA] transition-colors"
                                   >
                                     {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                  </button>
-                                  <button
-                                    onClick={() => removeSection(idx)}
-                                    title="Remove section"
-                                    className="rounded-md p-1.5 text-[var(--muted-soft)] hover:bg-red-50 hover:text-red-500 transition-colors"
-                                  >
-                                    <Trash2 size={16} />
                                   </button>
                                 </div>
                               </td>
@@ -786,11 +771,6 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                                         </select>
                                       </div>
                                     ))}
-                                    {s.count === 0 && (
-                                      <p className="col-span-full text-xs text-[var(--muted)] italic">
-                                        Set a number of items to add answer fields.
-                                      </p>
-                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -798,13 +778,6 @@ function AnswerKeyModal({ mode, editingKey, token, onClose, onSaved }) {
                           </Fragment>
                         )
                       })}
-                      {sections.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-sm text-[var(--muted)]">
-                            No sections yet — press “Add Section” to define one.
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>

@@ -1,0 +1,86 @@
+{
+  "template_id": "tmc-v1",
+  "reference": "Answer_Key_Format.jpg",
+  "size": [
+    2404,
+    3328
+  ],
+  "roi_size": 44,
+  "sections": [
+    {
+      "name": "inductive",
+      "items": 10,
+      "options": 5,
+      "x0": 225.56,
+      "dx": 59.74,
+      "y0": 629.71,
+      "dy": 64.0594,
+      "dy2": -0.10303,
+      "calibration": {
+        "x_rms": 0.25,
+        "y_rms": 0.61,
+        "coverage": 1.0
+      }
+    },
+    {
+      "name": "math",
+      "items": 30,
+      "options": 4,
+      "x0": 242.72,
+      "dx": 59.99,
+      "y0": 1379.23,
+      "dy": 61.2876,
+      "dy2": 0.05013,
+      "calibration": {
+        "x_rms": 0.11,
+        "y_rms": 1.39,
+        "coverage": 0.983
+      }
+    },
+    {
+      "name": "english",
+      "items": 30,
+      "options": 4,
+      "x0": 1242.45,
+      "dx": 59.58,
+      "y0": 639.99,
+      "dy": 62.318,
+      "dy2": -0.01424,
+      "calibration": {
+        "x_rms": 0.12,
+        "y_rms": 2.83,
+        "coverage": 0.95
+      }
+    },
+    {
+      "name": "science",
+      "items": 20,
+      "options": 4,
+      "x0": 1863.95,
+      "dx": 60.6,
+      "y0": 634.93,
+      "dy": 63.3019,
+      "dy2": -0.06418,
+      "calibration": {
+        "x_rms": 0.27,
+        "y_rms": 1.88,
+        "coverage": 0.988
+      }
+    },
+    {
+      "name": "aptitude",
+      "items": 10,
+      "options": 4,
+      "x0": 1858.16,
+      "dx": 60.31,
+      "y0": 2002.2,
+      "dy": 61.3394,
+      "dy2": 0.10606,
+      "calibration": {
+        "x_rms": 0.53,
+        "y_rms": 0.68,
+        "coverage": 0.975
+      }
+    }
+  ]
+}

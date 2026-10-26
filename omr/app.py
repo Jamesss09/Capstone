@@ -6,7 +6,7 @@ compares against an answer key, and returns scores.
 from fastapi import FastAPI, UploadFile, File
 import io
 
-from core.sheet_config import SHEET_SECTIONS, OPTION_COUNT
+from core.sheet_config import OPTION_COUNTS, SHEET_SECTIONS
 
 app = FastAPI(title="Code Nexus OMR Service", version="0.1.0")
 
@@ -19,7 +19,7 @@ def health():
 @app.get("/sheet-config")
 def sheet_config():
     """Return the expected section/option layout of the TMC answer sheet."""
-    return {"sections": SHEET_SECTIONS, "option_counts": OPTION_COUNT}
+    return {"sections": SHEET_SECTIONS, "option_counts": OPTION_COUNTS}
 
 
 @app.post("/recognize")
@@ -34,3 +34,9 @@ async def recognize(file: UploadFile = File(...), answer_key_id: int | None = No
         "answers": {},
         "score": 0,
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=5005)

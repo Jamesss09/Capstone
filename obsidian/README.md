@@ -33,6 +33,7 @@ See [[Overview]] for the full rundown.
 | [[Tech Stack]] | Finalized technologies (no Flowise, no JS/HTML) |
 | [[Answer Key Format]] | The 100-item sheet: A–E vs A–D per section |
 | [[AI - Task and Rules]] | What the AI/OMR module must do + its rules |
+| [[Dataset Gathering Workflow]] | Per-sheet process for building + labeling the bubble-crop dataset |
 | [[Agents - Task and Rules]] | Tasks & rules governing AI agents on this project |
 | [[AI - Implementation Plan]] | Phased build roadmap (Phase 0 → 6) |
 | [[UI Prototypes]] | Screens in `Prototype/` mapped to SRS + phases |
@@ -115,7 +116,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - **Skeleton loading restored** everywhere (`Skeleton.jsx` re-added from git history). They were never the load bug — the StrictMode mount guard was; that's fixed, so skeletons are safe again.
 - **Password visibility toggles** (Eye/EyeOff) added to both Password + Confirm fields in the Add/Edit user modals (`Users.jsx`).
 - **Agent guardrail added — Hard Rule 13** in [[Agents - Task and Rules]]: agents must **pause and warn the owner** whenever a request or bit of code drifts from the documented tech stack / SRS / SDD / Answer Key Format / RBAC / prototypes — and get explicit approval before building. Docs synced: `Backend API.md` (new `/dashboard/activity` row), `AI - Implementation Plan.md` (Phase 3 bullets), `Agents - Task and Rules.md`.
-- **Stack/doc audit (Rule-13 self-check, same day):** verified frontend (React+Tailwind, no Flowise), backend (Laravel+Sanctum only), OMR (torch/opencv/fastapi) all match the Tech Stack. **Found one lie in the docs:** the React Native scaffold was marked done in Phase 0 but `mobile/` is only a README placeholder — corrected the plan checkbox. Also fixed a stale `:5173` → `localhost:5174` port in `Backend API.md`. **Owner confirmed: mobile app + AI/model are both intentionally later** (neither blocks Phase 3 web work).
+- **Stack/doc audit (Rule-13 self-check, same day):** verified frontend (React+Tailwind, no Flowise), backend (Laravel+Sanctum only), OMR (torch/opencv/fastapi) all match the Tech Stack. **Found one lie in the docs:** the React Native scaffold was marked done in Phase 0 but `mobile/` is only a README placeholder — corrected the plan checkbox. The web dev server is pinned to `localhost:5173`; browser API requests use `localhost:8000` so the SameSite refresh cookie is sent. **Owner confirmed: mobile app + AI/model are both intentionally later** (neither blocks Phase 3 web work).
 
 ---
 

@@ -12,8 +12,13 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 # Backend API
 
 > [!info] Phase 1 — Laravel 12 + MySQL (Docker) + Sanctum
-> Base URL (dev): `http://127.0.0.1:8000/api`
-> Web frontend (Phase 3): `http://localhost:5174` (`npm run dev` in `frontend/`)
+> Browser base URL (dev): `http://localhost:8000/api`
+> Web frontend (Phase 3): `http://localhost:5173` (`npm run dev` in `frontend/`)
+>
+> Keep the browser on `localhost` (not `127.0.0.1`): the httpOnly refresh
+> cookie uses `SameSite=Lax`, and `localhost` and `127.0.0.1` are different
+> sites. `http://127.0.0.1:8000/api` is suitable for curl/Postman, but a web
+> client using it will not send the refresh cookie.
 
 ---
 
@@ -21,8 +26,14 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 | Method | Endpoint | Access | Notes |
 | --- | --- | --- | --- |
 | POST | `/login` | public | body: `login` (username/email) + `password` → returns `token` + `user` |
+| POST | `/refresh` | public | exchanges the httpOnly refresh cookie for a fresh `token` + `user`; browser clients must use `credentials: 'include'` |
 | POST | `/logout` | auth | revokes current token |
 | GET | `/me` | auth | current user |
+
+The access token is held only in browser memory. The refresh token is an
+httpOnly cookie, so browser requests must use `credentials: 'include'`. Any
+additional browser origin must be explicitly added to `CORS_ALLOWED_ORIGINS`;
+the wildcard `*` is invalid when credentialed CORS is enabled.
 
 ## Admin-only (role: Administrator)
 | Method | Endpoint | Notes |

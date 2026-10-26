@@ -11,4 +11,4 @@ COPY . .
 
 EXPOSE 5005
 
-CMD ["python", "app.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5005"]

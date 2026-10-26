@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AnswerKeyController extends Controller
 {
@@ -32,11 +33,12 @@ class AnswerKeyController extends Controller
             'status' => ['sometimes', Rule::in(['Active', 'Inactive'])],
             'file_path' => 'nullable|string|max:255',
             'items' => 'sometimes|array',
-            'items.*.section' => 'nullable|string|max:100',
+            'items.*.section' => 'required|string|max:100',
             'items.*.item_number' => 'required|integer|min:1',
             'items.*.correct_answer' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
             'items.*.points' => 'nullable|numeric|min:0',
         ]);
+        $data['items'] = $this->normalizeItems($data['items'] ?? []);
 
         $key = DB::transaction(function () use ($data, $request) {
             $key = AnswerKey::create([
@@ -51,7 +53,7 @@ class AnswerKeyController extends Controller
             if (!empty($data['items'])) {
                 $key->items()->createMany(
                     array_map(fn ($i) => [
-                        'section' => $i['section'] ?? null,
+                        'section' => $i['section'],
                         'item_number' => $i['item_number'],
                         'correct_answer' => $i['correct_answer'],
                         'points' => $i['points'] ?? 1.00,
@@ -160,17 +162,18 @@ class AnswerKeyController extends Controller
     {
         $data = $request->validate([
             'items' => 'required|array',
-            'items.*.section' => 'nullable|string|max:100',
+            'items.*.section' => 'required|string|max:100',
             'items.*.item_number' => 'required|integer|min:1',
             'items.*.correct_answer' => ['required', Rule::in(['A', 'B', 'C', 'D', 'E'])],
             'items.*.points' => 'nullable|numeric|min:0',
         ]);
+        $data['items'] = $this->normalizeItems($data['items']);
 
         DB::transaction(function () use ($answerKey, $data) {
             $answerKey->items()->delete();
             $answerKey->items()->createMany(
                 array_map(fn ($i) => [
-                    'section' => $i['section'] ?? null,
+                    'section' => $i['section'],
                     'item_number' => $i['item_number'],
                     'correct_answer' => $i['correct_answer'],
                     'points' => $i['points'] ?? 1.00,
@@ -179,5 +182,73 @@ class AnswerKeyController extends Controller
         });
 
         return response()->json($answerKey->load('items'));
+    }
+
+    /**
+     * Convert known display-name aliases to the template/DB identifier and
+     * reject invalid section, item-number, or option combinations.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws ValidationException
+     */
+    private function normalizeItems(array $items): array
+    {
+        $sections = config('omr_sections.sections');
+        $aliases = [];
+
+        foreach ($sections as $id => $section) {
+            foreach (array_merge([$id, $section['display']], $section['aliases']) as $alias) {
+                $aliases[$this->sectionKey($alias)] = $id;
+            }
+        }
+
+        $errors = [];
+        $seen = [];
+
+        foreach ($items as $index => &$item) {
+            $path = "items.{$index}";
+            $id = $aliases[$this->sectionKey((string) $item['section'])] ?? null;
+
+            if ($id === null) {
+                $errors["{$path}.section"] = ['Use one of: '.implode(', ', array_keys($sections)).'.'];
+                continue;
+            }
+
+            $section = $sections[$id];
+            $itemNumber = (int) $item['item_number'];
+            $answer = (string) $item['correct_answer'];
+            $allowedAnswers = array_slice(['A', 'B', 'C', 'D', 'E'], 0, $section['options']);
+
+            if ($itemNumber > $section['items']) {
+                $errors["{$path}.item_number"] = ["{$section['display']} has items 1–{$section['items']}. "];
+            }
+
+            if (!in_array($answer, $allowedAnswers, true)) {
+                $errors["{$path}.correct_answer"] = [
+                    "{$section['display']} accepts only ".implode('–', [reset($allowedAnswers), end($allowedAnswers)]).'.',
+                ];
+            }
+
+            $key = "{$id}:{$itemNumber}";
+            if (isset($seen[$key])) {
+                $errors["{$path}.item_number"] = ['Each section may contain an item number only once.'];
+            }
+            $seen[$key] = true;
+            $item['section'] = $id;
+        }
+        unset($item);
+
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $items;
+    }
+
+    private function sectionKey(string $value): string
+    {
+        return preg_replace('/[^a-z0-9]+/', '', strtolower(trim($value))) ?? '';
     }
 }

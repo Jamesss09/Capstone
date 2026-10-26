@@ -35,6 +35,24 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 > [!warning] Key change
 > Only **Inductive/Logical Test (items 1–10) uses A–E**. All other sections use **A–D**. This replaces the old assumption of A–D everywhere.
 
+### Canonical Section IDs
+
+The template, Laravel answer-key records, and OMR output use these lowercase
+identifiers. Display names are for the user interface only; do not store them
+as `section` values or use them for model labels.
+
+| ID | Display name | Items | Options |
+| --- | --- | --- | --- |
+| `inductive` | Inductive / Logical Test | 1 – 10 | A – E |
+| `math` | Mathematics | 1 – 30 | A – D |
+| `english` | English | 1 – 30 | A – D |
+| `science` | Science & Technology | 1 – 20 | A – D |
+| `aptitude` | Aptitude | 1 – 10 | A – D |
+
+Legacy display-name aliases are normalized to these IDs when an answer key is
+saved. Unknown/custom sections are rejected because they do not exist on the
+standardized TMC sheet.
+
 ---
 
 ## Marking Rules (printed on the sheet)

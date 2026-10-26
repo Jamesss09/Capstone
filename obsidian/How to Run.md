@@ -43,15 +43,15 @@ php artisan serve
 cd frontend
 npm run dev
 ```
-> Serves `http://localhost:5174`.
+> Serves `http://localhost:5173`.
 
 ## Open the app
 
-1. Browser → **http://localhost:5174**
+1. Browser → **http://localhost:5173**
 2. Login: **`admin` / `admin123`**
 3. Staff accounts are **mobile-only** — the web app rejects staff logins by design.
 
-The frontend talks to the API at `http://127.0.0.1:8000/api` (set in `frontend/src/api/client.js`).
+The frontend talks to the API at `http://localhost:8000/api` (set in `frontend/src/api/client.js`). Keep the browser API hostname as `localhost`: the httpOnly `SameSite=Lax` refresh cookie is not sent to `127.0.0.1`.
 
 ## Stop
 
@@ -63,7 +63,7 @@ The frontend talks to the API at `http://127.0.0.1:8000/api` (set in `frontend/s
 | Symptom | Fix |
 | --- | --- |
 | `php artisan serve` fails "address in use" | Another server is on `:8000`. Close extra `php artisan serve` windows; make sure the Docker backend container isn't running: `docker compose stop backend` |
-| Page won't load at `localhost:5174` | Vite binds IPv6 `localhost` — use `localhost:5174` (not `127.0.0.1:5174`) |
+| Page won't load at `localhost:5173` | Vite is pinned to `localhost:5173` — use `localhost:5173` (not `127.0.0.1:5173`) |
 | MySQL not reachable | `docker compose up -d mysql`, wait for "healthy": `docker ps` |
 | Schema changed / errors | `cd backend; php artisan migrate` (rerun migrations only — never wipe data casually) |
 | API calls fail after ~1h of coding | `php artisan serve` is single-threaded and can wedge; restart it (Ctrl+C, run again) |

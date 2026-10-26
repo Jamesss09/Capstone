@@ -1,21 +1,51 @@
-"""TMC answer sheet layout: per-section item ranges and option counts.
+"""Canonical TMC answer-sheet sections and option counts.
 
-Sheet has 100 items in 5 sections. Only the Inductive/Logical section uses
-5 options (A-E); all other sections use 4 options (A-D).
+The lowercase ``id`` is the identifier shared by the calibrated template,
+Laravel answer-key records, and OMR output. ``name`` is display-only.
 """
+from __future__ import annotations
+
+import re
+
 
 SHEET_SECTIONS = [
-    {"name": "Inductive / Logical Test", "start": 1, "end": 10, "options": 5},   # A-E
-    {"name": "Mathematics", "start": 1, "end": 30, "options": 4},                 # A-D
-    {"name": "English", "start": 1, "end": 30, "options": 4},                     # A-D
-    {"name": "Science & Technology", "start": 1, "end": 20, "options": 4},        # A-D
-    {"name": "Aptitude", "start": 1, "end": 10, "options": 4},                    # A-D
+    {"id": "inductive", "name": "Inductive / Logical Test", "start": 1, "end": 10, "options": 5},
+    {"id": "math", "name": "Mathematics", "start": 1, "end": 30, "options": 4},
+    {"id": "english", "name": "English", "start": 1, "end": 30, "options": 4},
+    {"id": "science", "name": "Science & Technology", "start": 1, "end": 20, "options": 4},
+    {"id": "aptitude", "name": "Aptitude", "start": 1, "end": 10, "options": 4},
 ]
 
+SECTION_BY_ID = {section["id"]: section for section in SHEET_SECTIONS}
 
-def OPTION_COUNT(item_number: int) -> int:
-    """Return the number of answer options for a given item number."""
-    # Sections restart item numbering at 1; the sheet columns map by position.
-    if 1 <= item_number <= 10:
-        return 5  # Inductive / Logical Test -> A-E
-    return 4  # A-D everywhere else
+
+def _section_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", value.strip().lower())
+
+
+SECTION_ALIASES = {
+    _section_key(alias): section_id
+    for section_id, aliases in {
+        "inductive": ("inductive", "Inductive / Logical Test", "Inductive/Logical Test", "Inductive Logical Test"),
+        "math": ("math", "Mathematics"),
+        "english": ("english", "English"),
+        "science": ("science", "Science & Technology", "Science and Technology"),
+        "aptitude": ("aptitude", "Aptitude"),
+    }.items()
+    for alias in aliases
+}
+
+OPTION_COUNTS = {section_id: section["options"] for section_id, section in SECTION_BY_ID.items()}
+
+
+def canonical_section(value: str) -> str:
+    """Return the canonical identifier for an id or supported display alias."""
+    try:
+        return SECTION_ALIASES[_section_key(value)]
+    except KeyError as exc:
+        raise ValueError(f"unknown TMC section: {value!r}") from exc
+
+
+def OPTION_COUNT(section: str) -> int:
+    """Return the permitted number of options for a canonical section or alias."""
+    return OPTION_COUNTS[canonical_section(section)]
