@@ -58,35 +58,80 @@ def _quad_warp(img: np.ndarray, width: int, height: int) -> np.ndarray:
     return cv2.warpPerspective(img, matrix, (width, height))
 
 
+def _validate_bgr(image: np.ndarray, name: str) -> None:
+    if not isinstance(image, np.ndarray) or image.size == 0:
+        raise ValueError(f"{name} must be a non-empty image")
+    if image.ndim != 3 or image.shape[2] != 3:
+        raise ValueError(f"{name} must be a BGR image")
+
+
+class SheetRegistrar:
+    """Register captures while caching the immutable reference descriptors."""
+
+    def __init__(self, reference: np.ndarray, nfeatures: int = 8000) -> None:
+        _validate_bgr(reference, "reference")
+        if nfeatures < 1:
+            raise ValueError("nfeatures must be at least 1")
+        self.reference = reference
+        self.height, self.width = reference.shape[:2]
+        self.nfeatures = nfeatures
+        gray_reference = cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY)
+        sift = cv2.SIFT_create(nfeatures=nfeatures)
+        self.reference_keypoints, self.reference_descriptors = sift.detectAndCompute(
+            gray_reference, None
+        )
+        if self.reference_descriptors is None or not self.reference_keypoints:
+            raise ValueError("reference image has no usable SIFT features")
+
+    def register(
+        self, image: np.ndarray, min_inliers: int = 40
+    ) -> tuple[np.ndarray, dict]:
+        """Warp one capture into the cached reference frame."""
+        _validate_bgr(image, "capture")
+        if min_inliers < 4:
+            raise ValueError("min_inliers must be at least 4")
+
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        sift = cv2.SIFT_create(nfeatures=self.nfeatures)
+        image_keypoints, image_descriptors = sift.detectAndCompute(gray_image, None)
+
+        info = {"method": "quad", "matches": 0, "inliers": 0, "inlier_ratio": 0.0}
+        if image_descriptors is not None and image_keypoints:
+            pairs = cv2.BFMatcher().knnMatch(
+                self.reference_descriptors, image_descriptors, k=2
+            )
+            good = [
+                pair[0]
+                for pair in pairs
+                if len(pair) == 2 and pair[0].distance < 0.75 * pair[1].distance
+            ]
+            info["matches"] = len(good)
+            if len(good) >= min_inliers:
+                source = np.float32(
+                    [image_keypoints[match.trainIdx].pt for match in good]
+                )
+                destination = np.float32(
+                    [self.reference_keypoints[match.queryIdx].pt for match in good]
+                )
+                matrix, mask = cv2.findHomography(source, destination, cv2.RANSAC, 4.0)
+                inliers = int(mask.sum()) if mask is not None else 0
+                info["inliers"] = inliers
+                info["inlier_ratio"] = inliers / len(good)
+                if matrix is not None and inliers >= min_inliers:
+                    warped = cv2.warpPerspective(
+                        image, matrix, (self.width, self.height)
+                    )
+                    info["method"] = "sift"
+                    return warped, info
+
+        return _quad_warp(image, self.width, self.height), info
+
+
 def register(
     img: np.ndarray, reference: np.ndarray, min_inliers: int = 40
 ) -> tuple[np.ndarray, dict]:
-    """Warp ``img`` into the reference frame. Returns (warped, diagnostics)."""
-    height, width = reference.shape[:2]
-    gray_ref = cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY)
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    sift = cv2.SIFT_create(nfeatures=8000)
-    kp_ref, des_ref = sift.detectAndCompute(gray_ref, None)
-    kp_img, des_img = sift.detectAndCompute(gray_img, None)
-
-    info = {"method": "quad", "matches": 0, "inliers": 0}
-    if des_ref is not None and des_img is not None and len(kp_ref) and len(kp_img):
-        matcher = cv2.BFMatcher()
-        pairs = matcher.knnMatch(des_ref, des_img, k=2)
-        good = [a for a, b in pairs if a.distance < 0.75 * b.distance]
-        if len(good) >= min_inliers:
-            src = np.float32([kp_img[m.trainIdx].pt for m in good])   # capture
-            dst = np.float32([kp_ref[m.queryIdx].pt for m in good])   # reference
-            matrix, mask = cv2.findHomography(src, dst, cv2.RANSAC, 4.0)
-            inliers = int(mask.sum()) if mask is not None else 0
-            if matrix is not None and inliers >= min_inliers:
-                warped = cv2.warpPerspective(img, matrix, (width, height))
-                info.update(method="sift", matches=len(good), inliers=inliers)
-                return warped, info
-
-    warped = _quad_warp(img, width, height)
-    return warped, info
+    """Warp ``img`` into ``reference`` without retaining a descriptor cache."""
+    return SheetRegistrar(reference).register(img, min_inliers=min_inliers)
 
 
 def register_file(image_path: Path, reference_path: Path) -> tuple[np.ndarray, dict]:

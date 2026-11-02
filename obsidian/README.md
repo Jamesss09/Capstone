@@ -30,7 +30,7 @@ See [[Overview]] for the full rundown.
 | Note | Purpose |
 | --- | --- |
 | [[Overview]] | High-level project overview (why, what, how) |
-| [[Tech Stack]] | Finalized technologies (no Flowise, no JS/HTML) |
+| [[Tech Stack]] | Finalized technologies (no Flowise or separate vanilla JS/HTML app; React uses JS/JSX) |
 | [[Answer Key Format]] | The 100-item sheet: A–E vs A–D per section |
 | [[AI - Task and Rules]] | What the AI/OMR module must do + its rules |
 | [[Dataset Gathering Workflow]] | Per-sheet process for building + labeling the bubble-crop dataset |
@@ -75,10 +75,23 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Phase 3 – **User Mgmt** (table: NAME · USERNAME · ROLE · STATUS · ACTION, Add/Edit modals, delete with self-delete guard)
 - [x] Phase 3 – **Settings Mgmt** (Appearance Light/Dark toggle — full dark theme via CSS tokens) & **Audit Logs** (color-coded chips, paginated 50)
 - [x] Phase 3 – **UI polish** (skeleton loading across admin screens; TMC-seal favicon + system-title browser tab)
-- [ ] Phase 2 – AI/OMR Engine — ⏸️ **deferred**: user builds own lightweight model + dataset first
+- [ ] Phase 2 – AI/OMR Engine — 🚧 **server Step 2 complete**: truth-independent 410-crop recognition, item validation, scoring, and real FastAPI endpoint are implemented; Laravel job integration and additional phone-photo validation remain
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation
+
+---
+
+## OMR Status Update (2026-11-03)
+
+- Dataset now contains `sheet_001`–`sheet_025`: **25 sheets / 10,250 bubble crops**, split by whole sheet into 19 train, 3 validation, and 3 test sheets.
+- Implemented: canonical section IDs and option counts, cached SIFT/quad registration, ring-refined 410-crop extraction, batched `BubbleCNN` inference, blank/multi/erasure validation, low-confidence flags, complete answer-key validation, weighted scoring, pass/fail, CLI tools, and real `POST /recognize`.
+- Local model artifacts exist in `omr/models/` for a pilot binary classifier and a final `shaded` / `empty` / `erasure_smudge` classifier.
+- Raw held-out argmax remains **98.29% crop accuracy**. The validation-calibrated production policy reproduces **10,250/10,250 crops exactly**, reaches **97.04% exact item accuracy** across 25 sheets, and **97.0%** on the locked three-sheet test split.
+- `POST /recognize` accepts JPEG/PNG multipart uploads and optional serialized key JSON; it returns registration/lattice diagnostics, 410 bubble classifications, 100 item decisions, flags, and scoring results.
+- Laravel currently creates OMR job records, but no worker consumes those jobs. The small checkpoint/report/model-card artifacts are prepared for direct Git versioning; the ignored dataset must be backed up separately under access control.
+
+See [[Dataset Gathering Workflow]], [[AI - Task and Rules]], and [[AI - Implementation Plan]].
 
 ---
 
@@ -116,7 +129,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - **Skeleton loading restored** everywhere (`Skeleton.jsx` re-added from git history). They were never the load bug — the StrictMode mount guard was; that's fixed, so skeletons are safe again.
 - **Password visibility toggles** (Eye/EyeOff) added to both Password + Confirm fields in the Add/Edit user modals (`Users.jsx`).
 - **Agent guardrail added — Hard Rule 13** in [[Agents - Task and Rules]]: agents must **pause and warn the owner** whenever a request or bit of code drifts from the documented tech stack / SRS / SDD / Answer Key Format / RBAC / prototypes — and get explicit approval before building. Docs synced: `Backend API.md` (new `/dashboard/activity` row), `AI - Implementation Plan.md` (Phase 3 bullets), `Agents - Task and Rules.md`.
-- **Stack/doc audit (Rule-13 self-check, same day):** verified frontend (React+Tailwind, no Flowise), backend (Laravel+Sanctum only), OMR (torch/opencv/fastapi) all match the Tech Stack. **Found one lie in the docs:** the React Native scaffold was marked done in Phase 0 but `mobile/` is only a README placeholder — corrected the plan checkbox. The web dev server is pinned to `localhost:5173`; browser API requests use `localhost:8000` so the SameSite refresh cookie is sent. **Owner confirmed: mobile app + AI/model are both intentionally later** (neither blocks Phase 3 web work).
+- **Stack/doc audit (Rule-13 self-check, same day):** verified frontend (React+Tailwind, no Flowise), backend (Laravel+Sanctum only), OMR (torch/opencv/fastapi) all match the Tech Stack. **Found one lie in the docs:** the React Native scaffold was marked done in Phase 0 but `mobile/` is only a README placeholder — corrected the plan checkbox. The web dev server is pinned to `localhost:5173`; browser API requests use `localhost:8000` so the SameSite refresh cookie is sent. **Historical decision:** on 2026-09-26 the owner planned mobile and AI/model work for later; Phase 2 dataset/model work subsequently started (see the 2026-11-02 update above).
 
 ---
 
@@ -130,7 +143,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
   - **Results table** — filter bar (🔍 name or examinee ID, All Courses, All Student Types, All Status, Clear), folder header line `SY … · N of N result(s) shown`, columns APPLICANT · EXAMINEE ID · EXAM DATE · SCORE · STATUS · ACTION, **View** detail modal, **Export CSV**, empty states for "no results yet" / "no match"
 - Backend: `GET /folders` now returns `applicants_result_count`; `GET /results` gains `folder_id`, `course`, `student_type` filters + search-by-examinee-ID; folder `school_year` validated as `SY YYYY-YYYY`; migration adds `tbl_examination_applicants.student_type` (NEW/TRANSFEREE/OLD/RETURNEE)
 - Sidebar label "Examination Results" → "Exam Results" per prototype
-- **Tweak (`85b6608`)**: removed the two "Add New SY / New School Year" buttons from the folder table view (create SY from launcher only); "All Courses" filter is now the fixed list **BSIT · BSCRIM · BSED · BSOA · BEED · BAPOLSCI · BACOM**
+- **Tweak (`85b6608`)**: removed the two "Add New SY / New School Year" buttons from the folder table view (create SY from launcher only); "All Courses" filter uses the canonical list **BSIT · BA POLSCI · BEED · BSED · BSCRIM · BSOA**. The older `BAPOLSCI` spelling and `BACOM` entry were documentation drift and are not accepted.
 - Earlier this day: Answer Key Mgmt + live dashboard feed (`8ff95cf`)
 
 **Env note:** dev backend on `:8000` (one `php artisan serve` — avoid stacking duplicates), MySQL in Docker (`code-nexus-mysql`), web dev server on `:5174` (`admin`/`admin123`). Backend Docker container = deploy-only (correct after 2026-09-26 fix, but ~10× slower over Windows bind mounts).

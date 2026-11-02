@@ -60,7 +60,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## 3. Hard Rules (non-negotiable)
 
 1. **Tech stack only** — React.js + Tailwind (web), React Native (Android), Laravel (backend), Python/PyTorch/OpenCV (AI), MySQL, Apache/Nginx, Docker, Git/GitHub.
-2. **No Flowise**, no JavaScript-to-replace (JS/HTML removed from stack).
+2. **No Flowise and no separate vanilla JS/HTML application.** JavaScript/JSX is expected inside the documented React.js and React Native applications; do not replace those frameworks with an unrelated vanilla frontend.
 3. **Answer options are per-section, not global A–D:**
    - Inductive/Logical 1–10 → **A–E**
    - Math 1–30, English 1–30, Science 1–20, Aptitude 1–10 → **A–D**

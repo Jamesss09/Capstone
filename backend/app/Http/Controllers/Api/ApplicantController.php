@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ExaminationApplicant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ApplicantController extends Controller
 {
@@ -34,7 +35,7 @@ class ApplicantController extends Controller
             'status' => 'sometimes|in:Pending,Processed',
             'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
             // Chosen by staff on the mobile Identify Applicant screen.
-            'course' => 'required|string|max:100',
+            'course' => ['required', 'string', 'max:100', Rule::in(config('courses'))],
         ]);
 
         $applicant = ExaminationApplicant::create([
@@ -59,7 +60,7 @@ class ApplicantController extends Controller
             'examination_date' => 'sometimes|date',
             'status' => 'sometimes|in:Pending,Processed',
             'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
-            'course' => 'sometimes|required|string|max:100',
+            'course' => ['sometimes', 'required', 'string', 'max:100', Rule::in(config('courses'))],
         ]);
 
         $applicant->update($data);

@@ -49,21 +49,25 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 2 — AI/OMR Engine (Python + PyTorch + OpenCV)
 **Goal:** Convert a captured sheet image into verified answers + score.
 
-> [!warning] ⏸️ DEFERRED — owner builds own lightweight model + dataset first
-> The OMR microservice skeleton (`omr/` FastAPI + `sheet_config.py`) already exists, but real
-> recognition work waits for the custom model/dataset. Design notes below stay valid.
-> **Owner confirmed 2026-09-26: AI/model is planned for later.**
+> [!warning] 🚧 IN PROGRESS — Step 2 server pipeline complete; field/mobile integration pending
+> Truth-independent registration and extraction reproduce all 10,250 locked crops exactly. The
+> validation-calibrated production decision policy reaches 97.04% exact item recognition across
+> 2,500 labeled items and 97.0% on the locked three-sheet test split. `POST /recognize` now returns
+> 410 bubble decisions, 100 validated items, and optional answer-key scoring. Real phone captures,
+> Laravel job-worker consumption/persistence, and mobile integration still require implementation.
 
-- [ ] Pre-processing: perspective correction, rotation, lighting, despeckle
-- [ ] Sheet template config per section (from [[Answer Key Format]]):
+- [x] Model reproducibility baseline — checkpoint-compatible `BubbleCNN`, shared 44×44 grayscale preprocessing, safe loader, enforced checkpoint/manifest SHA-256 provenance, tested dependency versions, and a CPU-pinned held-out evaluator. The evaluator reproduces the saved test loss, confusion matrix, and metrics exactly.
+- [ ] Pre-processing: perspective correction, rotation, lighting, despeckle *(partial: SIFT registration + quadrilateral-warp fallback implemented; lighting/noise quality handling remains)*
+- [x] Sheet template config per section (from [[Answer Key Format]]) — calibrated in `omr/core/templates/tmc_v1.json`:
   - Inductive 1–10 → **5 bubbles (A–E)**
   - Math 1–30, English 1–30, Science 1–20, Aptitude 1–10 → **4 bubbles (A–D)**
-- [ ] Bubble detection (OpenCV contour analysis + PyTorch model fallback)
-- [ ] Shade validation: single shade OK, multi-shade/erasure/blank → **invalid flag**
-- [ ] Out-of-range option (e.g., 'E' in Math) → invalid, never guessed
-- [ ] Answer-key comparison engine (input: key + detected answers → score)
-- [ ] Pass/Fail via `passing_score`; output correct/incorrect/total counts
-- [ ] Wrap as REST microservice consumed by Laravel job workers
+- [x] Bubble extraction and classification — OpenCV template registration → 410 calibrated crops → batched PyTorch classification for every bubble; incomplete/out-of-bounds extraction fails safely
+- [x] Shade validation: single shade OK, multi-shade/erasure/blank → status + invalid flags; low-confidence answers are returned with a flag
+- [x] Out-of-range option (e.g., 'E' in Math) → rejected by template/key validation, never guessed
+- [x] Answer-key comparison engine — complete 100-item key validation, weighted points, and per-item correctness
+- [x] Pass/Fail via `passing_score`; output score percentage and correct/incorrect/total counts
+- [x] Real FastAPI `POST /recognize` for JPEG/PNG recognition and optional scoring
+- [ ] Laravel queued-job worker consumption, result persistence, and audit logging
 - **Deliverable:** test harness on sample sheets; ≥95% detection, 100% calc accuracy, <seconds/sheet
 
 ---

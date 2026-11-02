@@ -19,6 +19,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from core.bubble_model import bubble_to_tensor
+
 CLASSES = ("shaded", "empty", "erasure_smudge")
 CLASS_TO_IDX = {name: index for index, name in enumerate(CLASSES)}
 
@@ -37,8 +39,9 @@ class BubbleDataset(Dataset):
         own folder.
     transform:
         Optional callable ``numpy.ndarray -> torch.Tensor`` (HxW uint8 in,
-        CHW float out). When omitted the image is scaled to ``[0, 1]`` and
-        returned as a 1xHxW tensor.
+        CHW float out). When omitted, the shared model preprocessing resizes
+        the crop to 44x44, scales it to ``[0, 1]``, and returns a 1x44x44
+        tensor.
     """
 
     def __init__(
@@ -85,7 +88,7 @@ class BubbleDataset(Dataset):
         if self.transform is not None:
             tensor = self.transform(image)
         else:
-            tensor = torch.from_numpy(image).float().div_(255.0).unsqueeze(0)
+            tensor = bubble_to_tensor(image)
         return tensor, label
 
     def sheets(self) -> set[str]:

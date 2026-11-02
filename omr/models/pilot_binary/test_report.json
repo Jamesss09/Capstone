@@ -1,0 +1,42 @@
+{
+  "checkpoint": "C:\\Users\\ACER\\Capstone\\omr\\models\\pilot_binary\\best.pt",
+  "checkpoint_best_epoch": 17,
+  "split": "test",
+  "classes": [
+    "shaded",
+    "empty"
+  ],
+  "counts": {
+    "shaded": 100,
+    "empty": 307
+  },
+  "excluded_erasure_smudge": 3,
+  "metrics": {
+    "loss": 0.0004515468363136142,
+    "accuracy": 1.0,
+    "confusion_matrix": [
+      [
+        100,
+        0
+      ],
+      [
+        0,
+        307
+      ]
+    ],
+    "per_class": {
+      "shaded": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 100
+      },
+      "empty": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 307
+      }
+    }
+  }
+}

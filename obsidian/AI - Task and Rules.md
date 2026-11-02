@@ -13,7 +13,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 > [!info] Overview
 > The AI/OMR module is the core of the **TMC Entrance Examination Answer Sheet Recognition and Scoring System (Code Nexus)**. It detects shaded bubbles from scanned/captured single-page answer sheets, compares them against the answer key, and computes the applicant's score.
 >
-> **Stack:** Python, PyTorch, OpenCV 
+> **Stack:** Python, PyTorch, OpenCV
 
 ---
 
@@ -100,13 +100,22 @@ The sheet has **100 items** in 5 sections:
 ## 3. Checklist for Implementation
 
 - [ ] Pre-processing pipeline (perspective, lighting, noise) in OpenCV
-- [ ] Option-count mapping per section (A–E for Inductive, A–D elsewhere)
-- [ ] Bubble detector (PyTorch) per section template
-- [ ] Multi-shade / blank / erasure detection & invalid flagging
-- [ ] Answer-key comparison + score computation engine
+- [x] Option-count mapping per section (A–E for Inductive, A–D elsewhere)
+- [x] Bubble classifier (PyTorch) over all 410 template-calibrated crops
+- [x] Multi-shade / blank / erasure detection & invalid flagging
+- [x] Answer-key comparison + score computation engine
 - [ ] Integration with Laravel backend (queued OMR jobs)
-- [ ] Result pass/fail determination using passing_score
+- [x] Result pass/fail determination using `passing_score`
 - [ ] Audit logging of AI actions
+
+> [!info] Current implementation snapshot — 2026-11-03
+> The server pipeline now performs SIFT/quad registration, ring-based lattice refinement, all 410
+> truth-independent crops, batched `BubbleCNN` inference, 100 item decisions, complete-key validation,
+> weighted scoring, and pass/fail through the real FastAPI `POST /recognize`. All 10,250 regenerated
+> crops match the locked dataset byte-for-byte; production item accuracy is 97.04% overall and 97.0%
+> on the locked test split. Laravel queue consumption/persistence, mobile capture integration, and
+> validation on additional real phone photos remain. See [[Dataset Gathering Workflow]] and
+> [[AI - Implementation Plan]].
 
 ---
 

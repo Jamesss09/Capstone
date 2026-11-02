@@ -12,7 +12,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 > [!info]
 > **Project:** TMC Entrance Examination Answer Sheet Recognition and Scoring System (**Code Nexus**)
 > **Client:** Trinidad Municipal College (TMC) — Admissions Office
-> **Status:** Phases 0–1 complete ✅ · **Phase 3 complete ✅** (Login, Dashboard, Answer Keys, Results, Users, Settings, Audit Logs) · Phase 2 (AI/OMR) ⏸️ deferred (model + dataset) · Phase 4 (mobile scanner) pending — see [[AI - Implementation Plan]]
+> **Status:** Phases 0–1 complete ✅ · **Phase 3 complete ✅** (Login, Dashboard, Answer Keys, Results, Users, Settings, Audit Logs) · Phase 2 (AI/OMR) 🚧 in progress (25-sheet dataset + classifier experiment complete; recognition/scoring integration pending) · Phase 4 (mobile scanner) pending — see [[AI - Implementation Plan]]
 
 ---
 

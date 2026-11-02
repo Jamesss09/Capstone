@@ -19,7 +19,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Document Outline
 1. **Introduction** — Purpose, Scope, Definitions, References
 2. **System Architecture** — 9 Class Diagrams
-3. **Data Design** — 12 Database Tables + ERD
+3. **Data Design** — 11 domain database tables + ERD *(the source document numbers them Tables 2.0–12.0; Table 1.0 is the glossary, not a database table)*
 4. **Detailed Design** — 8 Sequence Diagrams + Scanner
 5. **Human Interface Design**
 
@@ -49,8 +49,19 @@ Login, Dashboard, User Account, Identify Applicant, Examination Folder, Answer K
 | `tbl_users` | User accounts (role, is_active) |
 | `tbl_examination_applicants` | Applicant info per exam (folder, key) |
 
-> [!warning] Design change needed
-> With **A–E in the Inductive section**, `tbl_answer_key_items.correct_answer` and `tbl_applicant_answers.marked_answer` (currently `varchar(5)` — OK) must respect **per-section option counts**. An optional `section` column on key items helps the OMR engine know 4 vs 5 bubbles.
+> [!info] Implemented design update
+> `tbl_answer_key_items` and `tbl_applicant_answers` include a required `section` value so item numbers can restart within each section and option ranges can be validated. Stored IDs are `inductive`, `math`, `english`, `science`, and `aptitude`; only `inductive` accepts E. Both answer columns remain `varchar(5)`.
+
+## Implemented OMR service design
+
+The Python service registers each uploaded image to the versioned reference,
+refines the printed bubble lattice, extracts exactly 410 44×44 crops, classifies
+every crop with `BubbleCNN`, and reduces them to 100 item states. Blank items are
+incorrect; multiple shades and detected erasures are invalid; low-confidence
+single answers are retained with an audit flag. A complete validated answer key
+is then used for weighted points, percentage score, counts, and Passed/Failed.
+`POST /recognize` exposes this pipeline; Laravel queue consumption and database
+persistence remain a separate integration responsibility.
 
 ---
 

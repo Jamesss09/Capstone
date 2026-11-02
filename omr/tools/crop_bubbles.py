@@ -53,64 +53,14 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from core.extract import extract_bubbles, refine_lattice, refined_center
 from core.preprocess import register_file
-from tools.calibrate_template import center, detect_circles
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_PATH = ROOT / "core" / "templates" / "tmc_v1.json"
-REFERENCE_PATH = ROOT.parent / "Answer_Key_Format.jpg"
-OPTION_LETTERS = "ABCDE"
+REFERENCE_PATH = TEMPLATE_PATH.parent / "Answer_Key_Format.jpg"
 CLASSES = ("shaded", "empty", "erasure_smudge")
 MANIFEST_FIELDS = ("sheet_id", "split", "class", "path")
-
-
-def _polyfit_rows(rows: list[tuple[int, float, float, int]]) -> tuple[np.ndarray, np.ndarray]:
-    """Fit dx(j) and dy(j) from per-row median offsets."""
-    if not rows:
-        return np.array([0.0]), np.array([0.0])
-    j = np.array([r[0] for r in rows], dtype=np.float64)
-    dx = np.array([r[1] for r in rows], dtype=np.float64)
-    dy = np.array([r[2] for r in rows], dtype=np.float64)
-    degree = 2 if len(rows) >= 6 else (1 if len(rows) >= 3 else 0)
-    return np.polyfit(j, dx, degree), np.polyfit(j, dy, degree)
-
-
-def refine_lattice(warped: np.ndarray, template: dict, max_shift: float = 28.0) -> dict:
-    """Estimate a per-row (dx, dy) correction from the printed bubble rings.
-
-    The page is already SIFT-registered, so residuals are small and smooth.
-    Using the printed rings (not the shaded marks) keeps this independent of
-    the answer truth, so it works identically at inference time.
-    """
-    circles = detect_circles(cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY))
-    offsets = {}
-    for section in template["sections"]:
-        rows = []
-        for item in range(1, section["items"] + 1):
-            found = []
-            for option in range(section["options"]):
-                cx, cy = center(section, item, option)
-                distance = np.hypot(circles[:, 0] - cx, circles[:, 1] - cy)
-                nearest = int(np.argmin(distance))
-                if distance[nearest] <= max_shift:
-                    found.append(
-                        (circles[nearest, 0] - cx, circles[nearest, 1] - cy)
-                    )
-            if found:
-                median = np.median(np.array(found), axis=0)
-                rows.append((item, float(median[0]), float(median[1]), len(found)))
-        offsets[section["name"]] = _polyfit_rows(rows)
-    return offsets
-
-
-def refined_center(section: dict, item: int, option: int, offsets: dict) -> tuple[float, float]:
-    cx, cy = center(section, item, option)
-    if section["name"] in offsets:
-        dx_coef, dy_coef = offsets[section["name"]]
-        cx += float(np.polyval(dx_coef, item))
-        cy += float(np.polyval(dy_coef, item))
-    return cx, cy
-
 
 
 def load_json(path: Path) -> dict:
@@ -146,28 +96,22 @@ def _letter_set(value: object) -> set[str]:
 
 
 def crop_sheet(warped: np.ndarray, template: dict, truth: dict, offsets: dict) -> list[dict]:
-    gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
-    size = template["roi_size"]
-    half = size // 2
     lookups = {(row["section"], row["item"]): row for row in truth["items"]}
 
     records = []
-    for section in template["sections"]:
-        for item in range(1, section["items"] + 1):
-            row = lookups.get((section["name"], item), {"marked": None, "state": "blank"})
-            for option in range(section["options"]):
-                letter = OPTION_LETTERS[option]
-                cx, cy = refined_center(section, item, option, offsets)
-                x0, y0 = int(round(cx)) - half, int(round(cy)) - half
-                roi = gray[y0 : y0 + size, x0 : x0 + size]
-                if roi.shape != (size, size):
-                    continue
-                label = classify(row, letter)
-                records.append({
-                    "image": roi, "label": label,
-                    "name": f"{section['name']}_i{item:02d}_{letter}",
-                    "section": section["name"], "item": item, "letter": letter,
-                })
+    for bubble in extract_bubbles(warped, template, offsets):
+        row = lookups.get(
+            (bubble.section, bubble.item_number),
+            {"marked": None, "state": "blank"},
+        )
+        records.append({
+            "image": bubble.image,
+            "label": classify(row, bubble.letter),
+            "name": bubble.name,
+            "section": bubble.section,
+            "item": bubble.item_number,
+            "letter": bubble.letter,
+        })
     return records
 
 
@@ -299,7 +243,13 @@ def main() -> None:
 
     sheet_id = args.sheet_id or args.image.stem
     truth = load_json(args.truth)
-    offsets = refine_lattice(warped, template)
+    offsets, lattice = refine_lattice(warped, template)
+    print(
+        "lattice: "
+        f"quality={lattice['quality']} "
+        f"rows={lattice['matched_rows']}/{lattice['expected_rows']} "
+        f"rings={lattice['ring_matches']}/{lattice['expected_bubbles']}"
+    )
     records = crop_sheet(warped, template, truth, offsets)
     print(f"{sheet_id}: {len(records)} crops")
 

@@ -1,0 +1,75 @@
+{
+  "model_id": "tmc-bubble-cnn-three-class-v1",
+  "architecture": "BubbleCNN",
+  "checkpoint": "best.pt",
+  "checkpoint_sha256": "f50aa244692c5aa1d79668be31624767a9ffca0164e999a52da3a9b277824e85",
+  "input": {
+    "size": [44, 44],
+    "channels": 1,
+    "color": "grayscale",
+    "dtype": "float32",
+    "scaling": "uint8 / 255"
+  },
+  "classes": ["shaded", "empty", "erasure_smudge"],
+  "class_weights": [1.382676601409912, 0.44516828656196594, 32.869197845458984],
+  "seed": 42,
+  "best_epoch": 10,
+  "tested_environment": {
+    "python": "3.14.3",
+    "pytorch": "2.12.1+cpu",
+    "opencv": "5.0.0",
+    "numpy": "2.5.1",
+    "fastapi": "0.141.1",
+    "device": "cpu"
+  },
+  "production_decision": {
+    "erasure_probability_threshold": 0.8,
+    "low_confidence_threshold": 0.8,
+    "erasure_threshold_selection_split": "validation sheets only (sheet_020 through sheet_022)",
+    "validation_item_accuracy": 0.97,
+    "locked_test_item_accuracy": 0.97
+  },
+  "pipeline_artifacts": {
+    "template": "../../core/templates/tmc_v1.json",
+    "template_sha256": "456c7b24ff3e0d45b905b791d16f34623ee29028bcb5009a7c263d80ea90b136",
+    "reference": "../../core/templates/Answer_Key_Format.jpg",
+    "reference_sha256": "4803f44a75a55d162bdf17ab87be6564cad914cf690c100b304e49916416a481"
+  },
+  "dataset": {
+    "manifest": "../../dataset/crops/_manifest.csv",
+    "manifest_sha256": "ba0884c841f27ce489d6980b656c799013d18645822242cb393793bae5ad7f44",
+    "split_unit": "sheet",
+    "train_sheets": 19,
+    "validation_sheets": 3,
+    "test_sheets": 3
+  },
+  "test": {
+    "batch_size": 64,
+    "samples": 1230,
+    "accuracy": 0.9829268292682927,
+    "balanced_accuracy": 0.9387559621549769,
+    "macro_f1": 0.7893905869729374,
+    "shaded_recall": 0.9455782312925171,
+    "erasure_precision": 0.25925925925925924,
+    "report": "test_report.json"
+  },
+  "pipeline_validation": {
+    "report": "pipeline_report.json",
+    "report_sha256": "bc86183796177aa9fd9f0cb1c7c029e5a76f64dbc74699129125ab70f707cd23",
+    "sheets": 25,
+    "items": 2500,
+    "crops": 10250,
+    "crop_parity": 1.0,
+    "production_bubble_accuracy": 0.9922926829268293,
+    "exact_item_accuracy": 0.9704,
+    "valid_answer_accuracy": 0.9801712483100495,
+    "locked_test_item_accuracy": 0.97
+  },
+  "limitations": [
+    "The held-out test split contains only 8 erasure_smudge crops.",
+    "Raw-argmax held-out shaded recall is 94.56 percent; production-threshold metrics are reported separately.",
+    "End-to-end validation uses 25 existing scans; additional real mobile captures are still required.",
+    "The erasure decision threshold was selected on only 3 validation sheets and checked on 3 test sheets.",
+    "The original training script and complete training recipe were not preserved."
+  ]
+}

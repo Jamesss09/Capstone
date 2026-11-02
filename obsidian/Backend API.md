@@ -61,6 +61,22 @@ the wildcard `*` is invalid when credentialed CORS is enabled.
 | GET | `/results` | list (filters: `folder_id`, `status`, `answer_key_id`, `course`, `student_type`, `search` — name **or** examinee ID) |
 | GET | `/results/{result}` | detail (with applicant, answer key, sheet + answers) |
 
+## Python OMR service (`http://localhost:5005`)
+
+| Method | Endpoint | Notes |
+| --- | --- | --- |
+| GET | `/health` | service health and lazy model-load state |
+| GET | `/sheet-config` | canonical sections and option counts |
+| POST | `/recognize` | multipart JPEG/PNG `file`; optional `answer_key` JSON text field + `answer_key_id`; returns 410 bubbles, 100 item decisions, diagnostics, and optional score |
+
+`answer_key` must contain `passing_score` and all 100 item objects (`section`,
+`item_number`, `correct_answer`, optional `points`). The Python service has no
+database access, so `answer_key_id` alone is rejected. Laravel's future worker
+must load and serialize the key, call this private service, then persist answers,
+result, and job status. Uploads are capped at 10 MB/40 megapixels and serialized
+keys at 1 MB; invalid images, registration
+failures, and malformed/incomplete keys return 4xx responses.
+
 ---
 
 ## Rules enforced (from [[Agents - Task and Rules]])
@@ -70,7 +86,7 @@ the wildcard `*` is invalid when credentialed CORS is enabled.
 - All state-changing actions write `tbl_audit_logs`
 - Folder `school_year` must match `SY YYYY-YYYY` (e.g. `SY 2026-2027`; the `SY` prefix is optional on input)
 - `tbl_examination_applicants.student_type` added (Phase 3) for the sheet-header types NEW / TRANSFEREE / OLD / RETURNEE
-- `POST /applicants` requires `course` (the mobile Identify Applicant screen's **Course to Enroll**); subjects offered: `BSIT`, `BA POLSCI`, `BEED`, `BSED`, `BSCRIM`, `BSOA`
+- `POST /applicants` requires `course` (the mobile Identify Applicant screen's **Course to Enroll**). The API accepts only these canonical codes: `BSIT`, `BA POLSCI`, `BEED`, `BSED`, `BSCRIM`, `BSOA`; aliases such as `BAPOLSCI`, free-text names, and undocumented courses such as `BACOM` are rejected with 422.
 - `tbl_examination_applicants.course` is chosen at identification time; `tbl_examination_results.course` snapshots it when the result row is created, so the admin results table/export shows it
 - Passwords stored via bcrypt (`password_hash`)
 - MySQL runs in Docker (`code-nexus-mysql`, DB `code_nexus`, user `nexus` / root — see root `.env`, never commit real passwords)

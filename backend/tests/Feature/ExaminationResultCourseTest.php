@@ -80,6 +80,32 @@ class ExaminationResultCourseTest extends TestCase
             ->assertJsonValidationErrors('course');
     }
 
+    public function test_applicant_course_must_use_a_canonical_code(): void
+    {
+        $admin = $this->admin();
+        $folder = $this->folder($admin);
+        $key = $this->answerKey($admin);
+        Sanctum::actingAs($admin);
+
+        $payload = [
+            'folder_id' => $folder->id,
+            'answer_key_id' => $key->id,
+            'applicant_name' => 'Dela Cruz, Maria A.',
+            'examination_date' => '2026-08-24',
+            'student_type' => 'NEW',
+        ];
+
+        foreach (['BAPOLSCI', 'BACOM', 'BS Information Technology'] as $invalidCourse) {
+            $this->postJson('/api/applicants', [...$payload, 'course' => $invalidCourse])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('course');
+        }
+
+        $this->postJson('/api/applicants', [...$payload, 'course' => 'BA POLSCI'])
+            ->assertCreated()
+            ->assertJsonPath('course', 'BA POLSCI');
+    }
+
     public function test_results_snapshot_the_applicants_course_and_can_be_filtered(): void
     {
         $admin = $this->admin();

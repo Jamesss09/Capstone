@@ -26,7 +26,7 @@ A labeled set of **44×44 grayscale bubble crops** to train a 3-class classifier
 | `empty` | An unanswered bubble (printed ring only) |
 | `erasure_smudge` | Marked then erased (partial smudge) |
 
-One physical sheet (image + truth JSON) yields **~100 crops** — the sheet has 100 items across 5 sections: inductive 10 · math 30 · english 30 · science 20 · aptitude 10 (see [[Answer Key Format]]).
+One physical sheet (image + truth JSON) yields **410 bubble crops** — one crop for every printed option: inductive `10×5 = 50`, plus the other sections `90×4 = 360`. The sheet still has 100 items across 5 sections: inductive 10 · math 30 · english 30 · science 20 · aptitude 10 (see [[Answer Key Format]]).
 
 The **unit of data is the sheet**: all crops from one sheet stay together in one split (`train`/`val`/`test`), otherwise the model sees its own test answers.
 
@@ -136,7 +136,7 @@ Per bubble in a 44×44 crop:
 
 ## 5. What to gather next (variety checklist)
 
-Current inventory: `sheet_001`–`sheet_004` (~4 sheets ≈ 400 crops). The priority is **coverage of conditions + minority classes**, not bulk:
+Current inventory: `sheet_001`–`sheet_025` (**25 sheets / 10,250 crops**). Whole-sheet split: train `sheet_001`–`sheet_019` (7,790 crops), validation `sheet_020`–`sheet_022` (1,230), test `sheet_023`–`sheet_025` (1,230). The priority is still **coverage of conditions + minority classes**, not bulk:
 
 1. **Erasures & blanks** — sheets with deliberately erased answers and skipped items (critical minority classes)
 2. **Lighting** — even indoor, uneven/shadowed, near-window, camera flash
@@ -146,6 +146,16 @@ Current inventory: `sheet_001`–`sheet_004` (~4 sheets ≈ 400 crops). The prio
 6. **Real-world noise** — folds/creases, finger smudges near bubbles
 
 Log every variation in `capture` so per-condition evaluation is possible later. Aim for balanced class counts overall — track them via `BubbleDataset(split=...).class_counts()` and the manifest.
+
+> [!warning] Current model evidence
+> The local final three-class report uses the split above and records 98.29% overall test accuracy,
+> 93.88% balanced accuracy, and 78.94% macro F1. Minority-class evidence remains weak: the test
+> set contains only 8 `erasure_smudge` crops, with 25.93% raw-argmax precision. A production
+> erasure-probability threshold of 0.80 was selected only on validation sheets 020–022; it achieves
+> 97.0% exact item accuracy on locked test sheets 023–025 and 97.04% across all 2,500 existing items.
+> All 10,250 production crops match the labeled crops exactly. Many truth files still record capture
+> conditions as `unknown`; gather better metadata, more erasures, and new mobile-camera sheets before
+> claiming broad field readiness.
 
 ---
 
@@ -157,6 +167,9 @@ Log every variation in `capture` so per-condition evaluation is possible later. 
 | Commit labeled crops | `python tools/crop_bubbles.py label --image ... --truth ... --split train` |
 | Move sheets between splits | `python tools/assign_splits.py --train ... --val ... --test ... --apply` |
 | Load for training | `BubbleDataset("dataset/crops/_manifest.csv", split="train")` from `core/dataset.py` |
+| Reproduce held-out model report | `python tools/evaluate_model.py --checkpoint models/final_three_class/best.pt --manifest dataset/crops/_manifest.csv --split test --expected-report models/final_three_class/test_report.json` |
+| Validate full 25-sheet pipeline | `python tools/validate_pipeline.py --output models/final_three_class/pipeline_report.json` |
+| Recognize one sheet | `python tools/recognize_sheet.py --image dataset/raw_sheets/sheet_001.jpg --output recognition.json --debug-overlay recognition-overlay.png` |
 | Sheet-config sanity | see `core/sheet_config.py` (`SHEET_SECTIONS`, `OPTION_COUNT`), exposed at `GET /sheet-config` in `app.py` |
 
 ---

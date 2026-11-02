@@ -9,7 +9,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 
 # Tech Stack
 
-> [!info] Finalized stack for the Code Nexus project (JS & HTML removed, Flowise removed).
+> [!info] Finalized stack for the Code Nexus project. Flowise and a separate vanilla JS/HTML application are not part of the stack; React and React Native still use JavaScript/JSX as their implementation language.
 
 ## Frontend Web
 - **React.js**
@@ -27,6 +27,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - **Python**
 - **PyTorch**
 - **OpenCV**
+- Server-side architecture: SIFT/template registration → 410 calibrated 44×44 crops → `BubbleCNN` classification for every bubble → item validation and scoring. The Android app uploads images; it does not bundle the `.pt` checkpoint.
 
 ## Database
 - **MySQL**
