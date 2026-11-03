@@ -2,6 +2,42 @@
 
 Phase 4 component: staff scan answer sheets with the phone camera.
 
+## Current implementation
+
+- Expo SDK 58 + React Native + TypeScript
+- Android-only Expo configuration
+- Expo Router with routes under `src/app/`
+- Prototype-matched Staff Login screen
+- Prototype-matched Scanner Home screen
+- Laravel `POST /login` integration with staff-only role enforcement
+- Remembered access session stored with Expo SecureStore
+- The remaining capture workflow is intentionally not yet implemented; screens
+  are being reviewed one at a time.
+
+## Preview with Expo Go
+
+1. Install **Expo Go** on an Android phone.
+2. Connect the phone and development computer to the same Wi-Fi network.
+3. Copy `.env.example` to `.env.local` and replace the sample address with the
+   computer's LAN IPv4 address:
+
+   ```dotenv
+   EXPO_PUBLIC_API_URL=http://192.168.1.10:8000/api
+   ```
+
+4. Start Laravel/Docker on port 8000, then start Expo:
+
+   ```powershell
+   cd mobile
+   npm install
+   npx expo start
+   ```
+
+5. Scan the QR code in Expo Go. Changes appear through Fast Refresh.
+
+An Android Studio emulator uses `http://10.0.2.2:8000/api`. A physical phone
+cannot use `localhost` because that refers to the phone itself.
+
 ## OMR integration boundary
 
 The verified `.pt` checkpoint remains in the Python service; it is **not**
@@ -22,21 +58,6 @@ result. The mobile app never uploads or selects an answer key.
 - Order (flow guide)
 - View Result
 
-## Environment requirement
-This machine does **not** yet have the **Android SDK** (`ANDROID_HOME` unset).
-Before scaffolding:
-
-```powershell
-# Install Android Studio (or command-line tools), then set:
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-# verify
-adb --version
-```
-
-## Fast path
-Use Expo for fast start, eject to bare RN later if needed:
-```bash
-npx create-expo-app mobile --template blank-typescript
-```
-
-> Kicked off in **Phase 4** after backend + OMR integration points exist.
+Android Studio is optional for Expo Go review. It is required only when running
+a local Android emulator or local native build; Expo Build can create installable
+builds in the cloud later.

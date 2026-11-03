@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "TMC Scanner",
+    "slug": "tmc-scanner",
+    "version": "1.0.0",
+    "platforms": [
+      "android"
+    ],
+    "orientation": "portrait",
+    "icon": "./assets/tmc-app-icon.png",
+    "scheme": "codenexus",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.codenexus.tmcscanner",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/tmc-app-icon.png"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
