@@ -26,6 +26,10 @@ python -m pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 5005
 ```
 
+Dependencies are pinned to the model-card-tested CPU environment. The Docker
+image installs PyTorch from the official CPU wheel index so production builds
+do not download unused CUDA libraries.
+
 Useful endpoints:
 
 - `GET /health`

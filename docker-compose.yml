@@ -38,10 +38,10 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       QUEUE_CONNECTION: database
       DB_QUEUE: omr
-      DB_QUEUE_RETRY_AFTER: 120
+      DB_QUEUE_RETRY_AFTER: 180
       OMR_SERVICE_URL: http://omr:5005
       OMR_CONNECT_TIMEOUT: 5
-      OMR_REQUEST_TIMEOUT: 60
+      OMR_REQUEST_TIMEOUT: 120
     volumes:
       - ./backend:/var/www/html
     ports:
@@ -81,13 +81,13 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       QUEUE_CONNECTION: database
       DB_QUEUE: omr
-      DB_QUEUE_RETRY_AFTER: 120
+      DB_QUEUE_RETRY_AFTER: 180
       OMR_SERVICE_URL: http://omr:5005
       OMR_CONNECT_TIMEOUT: 5
-      OMR_REQUEST_TIMEOUT: 60
+      OMR_REQUEST_TIMEOUT: 120
     volumes:
       - ./backend:/var/www/html
-    command: ["php", "artisan", "queue:work", "database", "--queue=omr", "--sleep=1", "--tries=3", "--timeout=75", "--max-time=3600"]
+    command: ["php", "artisan", "queue:work", "database", "--queue=omr", "--sleep=1", "--tries=3", "--timeout=135", "--max-time=3600"]
 
 volumes:
   mysql_data:

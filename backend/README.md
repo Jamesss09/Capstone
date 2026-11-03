@@ -40,17 +40,17 @@ replaced by uploading a new image for the same pending applicant.
 ```dotenv
 QUEUE_CONNECTION=database
 DB_QUEUE=omr
-DB_QUEUE_RETRY_AFTER=120
+DB_QUEUE_RETRY_AFTER=180
 OMR_SERVICE_URL=http://omr:5005
 OMR_CONNECT_TIMEOUT=5
-OMR_REQUEST_TIMEOUT=60
+OMR_REQUEST_TIMEOUT=120
 ```
 
 Run database migrations and a local worker:
 
 ```powershell
 php artisan migrate
-php artisan queue:work database --queue=omr --tries=3 --timeout=75
+php artisan queue:work database --queue=omr --tries=3 --timeout=135
 ```
 
 Docker Compose includes the dedicated `omr-worker` service. The OMR host port is

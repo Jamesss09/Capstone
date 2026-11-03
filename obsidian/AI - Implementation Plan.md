@@ -68,7 +68,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Answer-key comparison engine — complete 100-item key validation, weighted points, and per-item correctness
 - [x] Pass/Fail via `passing_score`; output score percentage and correct/incorrect/total counts
 - [x] Real FastAPI `POST /recognize` for JPEG/PNG recognition and optional scoring
-- [x] Laravel queued-job worker consumption, independent response/score verification, atomic result persistence, retry/failure handling, recapture support, polling authorization, and audit logging
+- [x] Laravel queued-job worker consumption, independent response/score verification, atomic result persistence, retry/failure handling, recapture support, polling authorization, and audit logging. The complete Docker stack was runtime-verified with MySQL, Laravel, the dedicated worker, and the pinned CPU-only OMR image processing a real sheet through the database queue.
 - **Deliverable:** test harness on sample sheets; ≥95% detection, 100% calc accuracy, <seconds/sheet
 
 ---

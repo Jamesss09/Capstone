@@ -29,6 +29,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - **PyTorch**
 - **OpenCV**
 - Server-side architecture: SIFT/template registration → 410 calibrated 44×44 crops → `BubbleCNN` classification for every bubble → item validation and scoring. The Android app uploads images; it does not bundle the `.pt` checkpoint.
+- Container runtime: pinned model-card-tested dependencies with PyTorch 2.12.1 CPU; no CUDA runtime is required.
 
 ## Database
 - **MySQL**
