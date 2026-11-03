@@ -40,10 +40,10 @@ the wildcard `*` is invalid when credentialed CORS is enabled.
 | --- | --- | --- |
 | GET/POST | `/users` | list / create user |
 | GET/PUT/DELETE | `/users/{user}` | show / update / delete |
-| GET/POST | `/answer-keys` | list / create (+ nested `items`) |
-| GET/PUT/DELETE | `/answer-keys/{key}` | show / update / delete |
-| PUT | `/answer-keys/{key}/items` | replace all items (edit modal) |
-| POST | `/answer-keys/{key}/activate` | set this key **Active**, all others Inactive (one-active) |
+| GET/POST | `/answer-keys` | list / create (+ nested `items`); new keys start Inactive |
+| GET/PUT/DELETE | `/answer-keys/{key}` | show / update / delete; content is immutable after assignment |
+| PUT | `/answer-keys/{key}/items` | replace all items before the key is assigned |
+| POST | `/answer-keys/{key}/activate` | require all 100 items, set this key **Active**, and make all others Inactive |
 | POST | `/answer-keys/{key}/deactivate` | toggle key off (idempotent) |
 | GET/POST/PUT/DELETE | `/folders` | examination folders; index also returns `applicants_count` + `applicants_result_count` |
 | GET/POST/PUT | `/settings` | system settings — the admin UI's **Appearance** toggle upserts a `theme` key (light/dark); every change is audit-logged (`CREATE_SETTING` / `UPDATE_SETTING` / `DELETE_SETTING`) |
@@ -54,9 +54,9 @@ the wildcard `*` is invalid when credentialed CORS is enabled.
 ## Staff + Admin
 | Method | Endpoint | Notes |
 | --- | --- | --- |
-| POST | `/sheets/upload` | multipart: `applicant_id` + `image` (jpeg/png) → creates sheet + queued OMR job |
-| GET | `/omr-jobs/{job}` | job status |
-| GET/POST | `/applicants` | list (filters: folder_id, status) / create — **`course` is required**; `student_type` optional (`NEW`/`TRANSFEREE`/`OLD`/`RETURNEE`) |
+| POST | `/sheets/upload` | multipart: `applicant_id` + `image` (jpeg/png) → privately stored capture and HTTP 202 with sheet + queued OMR job; a Failed capture may be replaced |
+| GET | `/omr-jobs/{job}` | job + result status; staff can poll only their own jobs, administrators can poll any |
+| GET/POST | `/applicants` | list / identify applicant; **`course` is required**, `student_type` optional; Laravel generates the ID and automatically binds the active key—`answer_key_id` is prohibited |
 | GET/PUT/DELETE | `/applicants/{applicant}` | show (with sheet+answers+result) / update / delete |
 | GET | `/results` | list (filters: `folder_id`, `status`, `answer_key_id`, `course`, `student_type`, `search` — name **or** examinee ID) |
 | GET | `/results/{result}` | detail (with applicant, answer key, sheet + answers) |
@@ -71,9 +71,10 @@ the wildcard `*` is invalid when credentialed CORS is enabled.
 
 `answer_key` must contain `passing_score` and all 100 item objects (`section`,
 `item_number`, `correct_answer`, optional `points`). The Python service has no
-database access, so `answer_key_id` alone is rejected. Laravel's future worker
-must load and serialize the key, call this private service, then persist answers,
-result, and job status. Uploads are capped at 10 MB/40 megapixels and serialized
+database access, so `answer_key_id` alone is rejected. Laravel's `omr` queue
+worker loads and serializes the bound immutable key, calls this private service,
+independently verifies the returned items/score, and atomically persists answers,
+diagnostics, result, audit event, and job status. Uploads are capped at 10 MB/40 megapixels and serialized
 keys at 1 MB; invalid images, registration
 failures, and malformed/incomplete keys return 4xx responses.
 
@@ -83,6 +84,9 @@ failures, and malformed/incomplete keys return 4xx responses.
 - Staff calling `/users`, `/answer-keys`, `/settings`, `/audit-logs`, `/dashboard`, `/folders` → **403**
 - Answer choices restricted to **A, B, C, D, E** (validation rejects anything else)
 - Answer key items are unique per `[answer_key_id, section, item_number]` — sections restart numbering at 1
+- New keys are Inactive; activation requires exactly 100 canonical items. Assigned key content cannot be edited or deleted.
+- Applicant identification resolves the one active key on the server. Clients cannot select a different key.
+- OMR jobs retry transient service failures, permanently fail rejected captures/contracts, never persist partial answers/results, and audit both completed and terminally failed processing.
 - All state-changing actions write `tbl_audit_logs`
 - Folder `school_year` must match `SY YYYY-YYYY` (e.g. `SY 2026-2027`; the `SY` prefix is optional on input)
 - `tbl_examination_applicants.student_type` added (Phase 3) for the sheet-header types NEW / TRANSFEREE / OLD / RETURNEE

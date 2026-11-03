@@ -13,11 +13,17 @@ class ExaminationResult extends Model
         'applicant_id',
         'answer_key_id',
         'score',
+        'earned_points',
+        'total_points',
         'status',
         'course',
         'total_items',
         'correct_count',
         'incorrect_count',
+        'answered_count',
+        'blank_count',
+        'invalid_count',
+        'low_confidence_count',
         'passing_score',
         'computed_by',
         'computed_at',
@@ -27,6 +33,8 @@ class ExaminationResult extends Model
     {
         return [
             'score' => 'decimal:2',
+            'earned_points' => 'decimal:2',
+            'total_points' => 'decimal:2',
             'passing_score' => 'decimal:2',
             'computed_at' => 'datetime',
         ];

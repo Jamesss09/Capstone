@@ -13,14 +13,17 @@ class AnswerSheet extends Model
     protected $fillable = [
         'applicant_id',
         'image_path',
+        'storage_disk',
         'image_hash',
         'processed_at',
+        'recognition_metadata',
     ];
 
     protected function casts(): array
     {
         return [
             'processed_at' => 'datetime',
+            'recognition_metadata' => 'array',
         ];
     }
 
@@ -32,5 +35,10 @@ class AnswerSheet extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(ApplicantAnswer::class, 'sheet_id');
+    }
+
+    public function processingJobs(): HasMany
+    {
+        return $this->hasMany(OmrProcessingJob::class, 'sheet_id');
     }
 }

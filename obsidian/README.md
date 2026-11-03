@@ -75,7 +75,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - [x] Phase 3 – **User Mgmt** (table: NAME · USERNAME · ROLE · STATUS · ACTION, Add/Edit modals, delete with self-delete guard)
 - [x] Phase 3 – **Settings Mgmt** (Appearance Light/Dark toggle — full dark theme via CSS tokens) & **Audit Logs** (color-coded chips, paginated 50)
 - [x] Phase 3 – **UI polish** (skeleton loading across admin screens; TMC-seal favicon + system-title browser tab)
-- [ ] Phase 2 – AI/OMR Engine — 🚧 **server Step 2 complete**: truth-independent 410-crop recognition, item validation, scoring, and real FastAPI endpoint are implemented; Laravel job integration and additional phone-photo validation remain
+- [ ] Phase 2 – AI/OMR Engine — 🚧 **server Steps 2–3 complete**: truth-independent recognition/scoring plus Laravel queue integration and persistence are implemented; additional phone-photo validation remains
 - [ ] Phase 4 – Mobile Scanner (React Native)
 - [ ] Phase 5 – Integration & Testing
 - [ ] Phase 6 – Deployment & Documentation
@@ -89,7 +89,7 @@ Prototype screenshots: `Prototype/` (login, web, mobile).
 - Local model artifacts exist in `omr/models/` for a pilot binary classifier and a final `shaded` / `empty` / `erasure_smudge` classifier.
 - Raw held-out argmax remains **98.29% crop accuracy**. The validation-calibrated production policy reproduces **10,250/10,250 crops exactly**, reaches **97.04% exact item accuracy** across 25 sheets, and **97.0%** on the locked three-sheet test split.
 - `POST /recognize` accepts JPEG/PNG multipart uploads and optional serialized key JSON; it returns registration/lattice diagnostics, 410 bubble classifications, 100 item decisions, flags, and scoring results.
-- Laravel currently creates OMR job records, but no worker consumes those jobs. The small checkpoint/report/model-card artifacts are prepared for direct Git versioning; the ignored dataset must be backed up separately under access control.
+- Laravel now automatically binds the complete active key, dispatches a database-backed `omr` queue job, calls the private Python service, independently verifies the 100 items and weighted score, persists answers/results/diagnostics atomically, and records the processing audit event. Transient failures retry; rejected captures fail safely and can be replaced. The ignored dataset must still be backed up separately under access control.
 
 See [[Dataset Gathering Workflow]], [[AI - Task and Rules]], and [[AI - Implementation Plan]].
 

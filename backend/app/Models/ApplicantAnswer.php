@@ -14,13 +14,22 @@ class ApplicantAnswer extends Model
         'item_number',
         'section',
         'marked_answer',
+        'recognition_status',
+        'confidence',
+        'flags',
         'is_correct',
+        'points_awarded',
+        'points_possible',
     ];
 
     protected function casts(): array
     {
         return [
             'is_correct' => 'boolean',
+            'confidence' => 'float',
+            'flags' => 'array',
+            'points_awarded' => 'decimal:2',
+            'points_possible' => 'decimal:2',
         ];
     }
 

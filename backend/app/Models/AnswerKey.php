@@ -35,4 +35,9 @@ class AnswerKey extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function applicants(): HasMany
+    {
+        return $this->hasMany(ExaminationApplicant::class, 'answer_key_id');
+    }
 }

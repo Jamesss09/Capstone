@@ -6,6 +6,7 @@ Automated checking and scoring of entrance exam answer sheets for **Trinidad Mun
 - **Mobile (React Native, Android):** staff scan a single-page shaded answer sheet with the camera
 - **AI/OMR (Python, PyTorch, OpenCV):** detects shaded bubbles, compares with the answer key, computes score + Passed/Failed
 - **Web (React.js + Tailwind CSS + Laravel + MySQL):** administrators manage answer keys, results, folders, users, settings, audit logs
+- **Integration:** Laravel automatically binds the active key, queues the private Python recognition call, verifies the score, and atomically stores 100 answers and the result
 
 ### Answer sheet (100 items)
 | Section | Items | Options |
@@ -40,8 +41,11 @@ See `obsidian/AI - Implementation Plan.md` — Phase 0 (setup) → 6 (deploy).
 
 ## Quick start (dev)
 ```bash
-# services (MySQL, Laravel backend, OMR)
+# services (MySQL, Laravel backend, OMR, dedicated OMR queue worker)
 docker compose up -d --build
+
+# first run / after schema changes
+docker compose exec backend php artisan migrate --force
 
 # web frontend
 cd frontend && npm install && npm run dev

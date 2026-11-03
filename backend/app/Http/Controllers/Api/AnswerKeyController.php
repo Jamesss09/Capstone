@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AnswerKey;
-use App\Models\AnswerKeyItem;
 use App\Models\AuditLog;
+use App\Services\Omr\AnswerKeyPayloadFactory;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class AnswerKeyController extends Controller
 {
+    public function __construct(private readonly AnswerKeyPayloadFactory $payloadFactory) {}
+
     public function index(): JsonResponse
     {
         return response()->json(
@@ -30,7 +33,7 @@ class AnswerKeyController extends Controller
             'exam_title' => 'required|string|max:255',
             'passing_score' => 'required|numeric|between:0,100',
             'school_year' => 'required|string|max:50',
-            'status' => ['sometimes', Rule::in(['Active', 'Inactive'])],
+            'status' => 'prohibited',
             'file_path' => 'nullable|string|max:255',
             'items' => 'sometimes|array',
             'items.*.section' => 'required|string|max:100',
@@ -45,12 +48,12 @@ class AnswerKeyController extends Controller
                 'exam_title' => $data['exam_title'],
                 'passing_score' => $data['passing_score'],
                 'school_year' => $data['school_year'],
-                'status' => $data['status'] ?? 'Active',
+                'status' => 'Inactive',
                 'file_path' => $data['file_path'] ?? null,
                 'created_by' => $request->user()->id,
             ]);
 
-            if (!empty($data['items'])) {
+            if (! empty($data['items'])) {
                 $key->items()->createMany(
                     array_map(fn ($i) => [
                         'section' => $i['section'],
@@ -86,11 +89,15 @@ class AnswerKeyController extends Controller
             'exam_title' => 'sometimes|string|max:255',
             'passing_score' => 'sometimes|numeric|between:0,100',
             'school_year' => 'sometimes|string|max:50',
-            'status' => ['sometimes', Rule::in(['Active', 'Inactive'])],
+            'status' => 'prohibited',
             'file_path' => 'nullable|string|max:255',
         ]);
 
-        $answerKey->update($data);
+        DB::transaction(function () use ($answerKey, $data) {
+            $lockedKey = AnswerKey::query()->lockForUpdate()->findOrFail($answerKey->id);
+            $this->ensureMutable($lockedKey);
+            $lockedKey->update($data);
+        });
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -105,15 +112,19 @@ class AnswerKeyController extends Controller
 
     public function destroy(Request $request, AnswerKey $answerKey): JsonResponse
     {
-        AuditLog::create([
-            'user_id' => $request->user()->id,
-            'action' => 'DELETE_ANSWER_KEY',
-            'table_name' => 'tbl_answer_keys',
-            'record_id' => $answerKey->id,
-            'ip_address' => $request->ip(),
-        ]);
+        DB::transaction(function () use ($request, $answerKey) {
+            $lockedKey = AnswerKey::query()->lockForUpdate()->findOrFail($answerKey->id);
+            $this->ensureMutable($lockedKey);
 
-        $answerKey->delete();
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'DELETE_ANSWER_KEY',
+                'table_name' => 'tbl_answer_keys',
+                'record_id' => $lockedKey->id,
+                'ip_address' => $request->ip(),
+            ]);
+            $lockedKey->delete();
+        });
 
         return response()->json(['message' => 'Answer key deleted.']);
     }
@@ -124,10 +135,20 @@ class AnswerKeyController extends Controller
         // Use query-builder updates so the target key always flips to Active even
         // when it was already Active in memory (Eloquent's dirty check would skip
         // the update and leave the key deactivated by the blanket query above).
-        DB::transaction(function () use ($answerKey) {
-            AnswerKey::where('status', 'Active')->update(['status' => 'Inactive']);
-            AnswerKey::whereKey($answerKey->id)->update(['status' => 'Active']);
-        });
+        try {
+            DB::transaction(function () use ($answerKey) {
+                AnswerKey::query()->lockForUpdate()->get();
+                $lockedKey = AnswerKey::query()->with('items')->findOrFail($answerKey->id);
+                $this->payloadFactory->make($lockedKey);
+
+                AnswerKey::where('status', 'Active')->update(['status' => 'Inactive']);
+                AnswerKey::whereKey($lockedKey->id)->update(['status' => 'Active']);
+            });
+        } catch (DomainException $exception) {
+            throw ValidationException::withMessages([
+                'items' => [$exception->getMessage()],
+            ]);
+        }
 
         AuditLog::create([
             'user_id' => $request->user()->id,
@@ -170,8 +191,10 @@ class AnswerKeyController extends Controller
         $data['items'] = $this->normalizeItems($data['items']);
 
         DB::transaction(function () use ($answerKey, $data) {
-            $answerKey->items()->delete();
-            $answerKey->items()->createMany(
+            $lockedKey = AnswerKey::query()->lockForUpdate()->findOrFail($answerKey->id);
+            $this->ensureMutable($lockedKey);
+            $lockedKey->items()->delete();
+            $lockedKey->items()->createMany(
                 array_map(fn ($i) => [
                     'section' => $i['section'],
                     'item_number' => $i['item_number'],
@@ -188,7 +211,7 @@ class AnswerKeyController extends Controller
      * Convert known display-name aliases to the template/DB identifier and
      * reject invalid section, item-number, or option combinations.
      *
-     * @param array<int, array<string, mixed>> $items
+     * @param  array<int, array<string, mixed>>  $items
      * @return array<int, array<string, mixed>>
      *
      * @throws ValidationException
@@ -213,6 +236,7 @@ class AnswerKeyController extends Controller
 
             if ($id === null) {
                 $errors["{$path}.section"] = ['Use one of: '.implode(', ', array_keys($sections)).'.'];
+
                 continue;
             }
 
@@ -225,7 +249,7 @@ class AnswerKeyController extends Controller
                 $errors["{$path}.item_number"] = ["{$section['display']} has items 1–{$section['items']}. "];
             }
 
-            if (!in_array($answer, $allowedAnswers, true)) {
+            if (! in_array($answer, $allowedAnswers, true)) {
                 $errors["{$path}.correct_answer"] = [
                     "{$section['display']} accepts only ".implode('–', [reset($allowedAnswers), end($allowedAnswers)]).'.',
                 ];
@@ -250,5 +274,14 @@ class AnswerKeyController extends Controller
     private function sectionKey(string $value): string
     {
         return preg_replace('/[^a-z0-9]+/', '', strtolower(trim($value))) ?? '';
+    }
+
+    private function ensureMutable(AnswerKey $answerKey): void
+    {
+        abort_if(
+            $answerKey->applicants()->exists(),
+            409,
+            'This answer key is already assigned to an applicant and can no longer be edited or deleted.'
+        );
     }
 }

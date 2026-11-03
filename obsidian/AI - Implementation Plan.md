@@ -49,12 +49,13 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 ## Phase 2 — AI/OMR Engine (Python + PyTorch + OpenCV)
 **Goal:** Convert a captured sheet image into verified answers + score.
 
-> [!warning] 🚧 IN PROGRESS — Step 2 server pipeline complete; field/mobile integration pending
+> [!warning] 🚧 IN PROGRESS — server recognition and Laravel integration complete; field/mobile work pending
 > Truth-independent registration and extraction reproduce all 10,250 locked crops exactly. The
 > validation-calibrated production decision policy reaches 97.04% exact item recognition across
 > 2,500 labeled items and 97.0% on the locked three-sheet test split. `POST /recognize` now returns
-> 410 bubble decisions, 100 validated items, and optional answer-key scoring. Real phone captures,
-> Laravel job-worker consumption/persistence, and mobile integration still require implementation.
+> 410 bubble decisions, 100 validated items, and optional answer-key scoring. Laravel now binds the
+> active key, queues processing, verifies and persists all answers/results, and exposes polling status.
+> Real phone captures and the React Native client still require implementation.
 
 - [x] Model reproducibility baseline — checkpoint-compatible `BubbleCNN`, shared 44×44 grayscale preprocessing, safe loader, enforced checkpoint/manifest SHA-256 provenance, tested dependency versions, and a CPU-pinned held-out evaluator. The evaluator reproduces the saved test loss, confusion matrix, and metrics exactly.
 - [ ] Pre-processing: perspective correction, rotation, lighting, despeckle *(partial: SIFT registration + quadrilateral-warp fallback implemented; lighting/noise quality handling remains)*
@@ -67,7 +68,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - [x] Answer-key comparison engine — complete 100-item key validation, weighted points, and per-item correctness
 - [x] Pass/Fail via `passing_score`; output score percentage and correct/incorrect/total counts
 - [x] Real FastAPI `POST /recognize` for JPEG/PNG recognition and optional scoring
-- [ ] Laravel queued-job worker consumption, result persistence, and audit logging
+- [x] Laravel queued-job worker consumption, independent response/score verification, atomic result persistence, retry/failure handling, recapture support, polling authorization, and audit logging
 - **Deliverable:** test harness on sample sheets; ≥95% detection, 100% calc accuracy, <seconds/sheet
 
 ---

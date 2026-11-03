@@ -39,13 +39,26 @@ class ExaminationResultCourseTest extends TestCase
 
     private function answerKey(User $admin): AnswerKey
     {
-        return AnswerKey::create([
+        $key = AnswerKey::create([
             'exam_title' => 'TMC Entrance Exam',
             'passing_score' => 75,
             'school_year' => 'SY 2026-2027',
             'status' => 'Active',
             'created_by' => $admin->id,
         ]);
+
+        foreach (config('omr_sections.sections') as $sectionId => $section) {
+            for ($itemNumber = 1; $itemNumber <= $section['items']; $itemNumber++) {
+                $key->items()->create([
+                    'section' => $sectionId,
+                    'item_number' => $itemNumber,
+                    'correct_answer' => 'A',
+                    'points' => 1,
+                ]);
+            }
+        }
+
+        return $key;
     }
 
     public function test_identifying_an_applicant_requires_and_stores_the_course(): void
@@ -57,7 +70,6 @@ class ExaminationResultCourseTest extends TestCase
 
         $payload = [
             'folder_id' => $folder->id,
-            'answer_key_id' => $key->id,
             'applicant_name' => 'Dela Cruz, Maria A.',
             'examination_date' => '2026-08-24',
             'student_type' => 'NEW',
@@ -66,6 +78,7 @@ class ExaminationResultCourseTest extends TestCase
 
         $this->postJson('/api/applicants', $payload)
             ->assertCreated()
+            ->assertJsonPath('answer_key_id', $key->id)
             ->assertJsonPath('course', 'BSIT')
             ->assertJsonPath('student_type', 'NEW');
 
@@ -89,7 +102,6 @@ class ExaminationResultCourseTest extends TestCase
 
         $payload = [
             'folder_id' => $folder->id,
-            'answer_key_id' => $key->id,
             'applicant_name' => 'Dela Cruz, Maria A.',
             'examination_date' => '2026-08-24',
             'student_type' => 'NEW',

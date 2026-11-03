@@ -58,6 +58,11 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - Score a single sheet **within seconds**
 - **≥70% reduction** in processing time
 
+### Implemented server workflow
+- Staff identifies the applicant without choosing or uploading an answer key; Laravel automatically binds the administrator-controlled active complete key.
+- A JPEG/PNG upload creates a queued OMR job. The worker performs server-side recognition/scoring, verifies the returned 100 items, and stores the result atomically.
+- Mobile clients poll job status (`Queued`, `Processing`, `Completed`, or `Failed`); rejected captures remain unscored and may be recaptured.
+
 ---
 
 ## Use Cases (from SRS)

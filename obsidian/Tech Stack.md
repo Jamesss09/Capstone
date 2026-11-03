@@ -22,6 +22,7 @@ project: TMC Entrance Examination Answer Sheet Recognition and Scoring System
 - **Laravel (PHP)**
 - RESTful APIs
 - MVC Architecture
+- Laravel database queue with a dedicated `omr` worker for private FastAPI calls, retry/failure handling, and atomic MySQL persistence
 
 ## AI/ML OMR
 - **Python**

@@ -39,11 +39,11 @@ Login, Dashboard, User Account, Identify Applicant, Examination Folder, Answer K
 | --- | --- |
 | `tbl_answer_key_items` | Individual items of each key (correct answer, points) |
 | `tbl_answer_keys` | Official keys: exam title, passing score, school year, status |
-| `tbl_answer_sheets` | Scanned sheet metadata + image (path, hash) |
-| `tbl_applicant_answers` | Per-item marked answers (marked_answer, is_correct) |
+| `tbl_answer_sheets` | Privately stored scanned sheet metadata (disk, path, hash) + OMR diagnostics/model provenance |
+| `tbl_applicant_answers` | Per-item answer, recognition status/confidence/flags, correctness, and awarded/possible points |
 | `tbl_audit_logs` | Security/traceability log of user actions |
 | `tbl_examination_folders` | Result folders by course + school year |
-| `tbl_examination_results` | Final scores, statuses (Passed/Failed), counts |
+| `tbl_examination_results` | Final weighted score, points, Passed/Failed, and answered/blank/invalid/confidence counts |
 | `tbl_omr_processing_jobs` | Queued/tracked AI processing jobs |
 | `tbl_settings` | System-wide configuration |
 | `tbl_users` | User accounts (role, is_active) |
@@ -60,8 +60,12 @@ every crop with `BubbleCNN`, and reduces them to 100 item states. Blank items ar
 incorrect; multiple shades and detected erasures are invalid; low-confidence
 single answers are retained with an audit flag. A complete validated answer key
 is then used for weighted points, percentage score, counts, and Passed/Failed.
-`POST /recognize` exposes this pipeline; Laravel queue consumption and database
-persistence remain a separate integration responsibility.
+`POST /recognize` exposes this pipeline. Laravel binds the one complete active
+key when the applicant is identified, freezes key content after assignment,
+dispatches `ProcessOmrSheet` on the database-backed `omr` queue, and calls the
+private Python service. It then independently verifies the response against the
+bound key and atomically persists 100 answers, score/result counts, model and
+registration diagnostics, sheet/applicant/job state, and an audit event.
 
 ---
 

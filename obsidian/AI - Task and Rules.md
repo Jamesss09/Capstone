@@ -104,17 +104,20 @@ The sheet has **100 items** in 5 sections:
 - [x] Bubble classifier (PyTorch) over all 410 template-calibrated crops
 - [x] Multi-shade / blank / erasure detection & invalid flagging
 - [x] Answer-key comparison + score computation engine
-- [ ] Integration with Laravel backend (queued OMR jobs)
+- [x] Integration with Laravel backend (database-backed queued OMR jobs)
 - [x] Result pass/fail determination using `passing_score`
-- [ ] Audit logging of AI actions
+- [x] Audit logging of completed and failed AI processing
 
 > [!info] Current implementation snapshot — 2026-11-03
 > The server pipeline now performs SIFT/quad registration, ring-based lattice refinement, all 410
 > truth-independent crops, batched `BubbleCNN` inference, 100 item decisions, complete-key validation,
-> weighted scoring, and pass/fail through the real FastAPI `POST /recognize`. All 10,250 regenerated
+> weighted scoring, and pass/fail through the real FastAPI `POST /recognize`. Laravel now automatically
+> binds the complete active key, dispatches a retryable OMR queue job, independently verifies the
+> service response, and atomically stores 100 answers, recognition metadata, score, and audit event.
+> All 10,250 regenerated
 > crops match the locked dataset byte-for-byte; production item accuracy is 97.04% overall and 97.0%
-> on the locked test split. Laravel queue consumption/persistence, mobile capture integration, and
-> validation on additional real phone photos remain. See [[Dataset Gathering Workflow]] and
+> on the locked test split. Mobile capture integration and validation on additional real phone photos
+> remain. See [[Dataset Gathering Workflow]] and
 > [[AI - Implementation Plan]].
 
 ---
