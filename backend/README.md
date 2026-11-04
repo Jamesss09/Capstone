@@ -7,7 +7,9 @@ answer-key file and never call Python directly.
 ## Staff processing flow
 
 1. `POST /api/applicants` creates the applicant. Laravel automatically binds
-   the one complete active answer key; clients cannot submit `answer_key_id`.
+   the one complete active answer key and resolves the active examination folder
+   from the submitted course when `folder_id` is omitted; clients cannot submit
+   `answer_key_id`.
 2. `POST /api/sheets/upload` accepts `applicant_id` and a JPEG/PNG image,
    stores the capture on Laravel's private disk, creates the answer-sheet and
    domain-job records, and dispatches `ProcessOmrSheet` to the `omr` queue.

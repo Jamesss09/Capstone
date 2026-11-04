@@ -11,18 +11,29 @@ use Illuminate\Validation\Rule;
 
 class ExaminationFolderController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            ExaminationFolder::withCount([
-                'applicants',
-                // Number of results filed: count applicants that already have a result
-                'applicants as applicants_result_count' => fn ($q) => $q->whereHas('result'),
-            ])
-                ->with('creator:id,full_name')
-                ->latest()
-                ->get()
-        );
+        $data = $request->validate([
+            'status' => ['sometimes', Rule::in(['Active', 'Archived'])],
+        ]);
+
+        $query = ExaminationFolder::withCount([
+            'applicants',
+            // Number of results filed: count applicants that already have a result
+            'applicants as applicants_result_count' => fn ($q) => $q->whereHas('result'),
+        ])
+            ->with('creator:id,full_name')
+            ->latest();
+
+        // Staff may only file results into active folders, so never expose
+        // archived folders to the mobile scan workflow.
+        if ($request->user()->role !== 'Administrator') {
+            $query->where('status', 'Active');
+        } elseif (isset($data['status'])) {
+            $query->where('status', $data['status']);
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(Request $request): JsonResponse

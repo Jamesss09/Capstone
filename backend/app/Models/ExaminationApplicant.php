@@ -11,20 +11,25 @@ class ExaminationApplicant extends Model
     protected $table = 'tbl_examination_applicants';
 
     protected $fillable = [
+        'submission_uuid',
         'folder_id',
         'answer_key_id',
         'applicant_name',
+        'mobile_number',
         'examination_date',
         'status',
         'student_type',
         'course',
         'created_by',
+        'filed_at',
+        'filed_by',
     ];
 
     protected function casts(): array
     {
         return [
             'examination_date' => 'date',
+            'filed_at' => 'datetime',
         ];
     }
 
@@ -41,6 +46,11 @@ class ExaminationApplicant extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function filedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'filed_by');
     }
 
     public function answerSheet(): HasOne

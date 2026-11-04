@@ -1,49 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuth } from '@/auth/AuthContext';
+import { ScannerHeader } from '@/features/scanner/ScannerHeader';
+import { useScannerWorkflow } from '@/features/scanner/ScannerWorkflowContext';
 import { colors } from '@/theme/colors';
 
 export function ScannerHomeScreen() {
-  const { signOut } = useAuth();
-
-  function showNextScreenCheckpoint(action: 'scan' | 'upload') {
-    Alert.alert(
-      action === 'scan' ? 'Start Scan' : 'Upload Photo',
-      'The Scan Answer Sheet screen will be connected after Scanner Home is reviewed.',
-    );
-  }
+  const router = useRouter();
+  const { clearWorkflow } = useScannerWorkflow();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'right', 'bottom', 'left']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>EXAMINATION STAFF</Text>
-          <Text style={styles.appName}>TMC Scanner</Text>
-        </View>
-
-        <Pressable
-          onPress={() => void signOut()}
-          accessibilityRole="button"
-          accessibilityLabel="Sign Out"
-          hitSlop={10}
-          style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutButtonPressed]}
-        >
-          <Ionicons name="log-out-outline" color={colors.navy} size={18} />
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.divider} />
+      <ScannerHeader />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -62,7 +32,10 @@ export function ScannerHomeScreen() {
 
         <View style={styles.actions}>
           <Pressable
-            onPress={() => showNextScreenCheckpoint('scan')}
+            onPress={() => {
+              clearWorkflow();
+              router.push('/capture');
+            }}
             accessibilityRole="button"
             accessibilityLabel="Start Scan"
             style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
@@ -72,7 +45,10 @@ export function ScannerHomeScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => showNextScreenCheckpoint('upload')}
+            onPress={() => {
+              clearWorkflow();
+              router.push('/upload');
+            }}
             accessibilityRole="button"
             accessibilityLabel="Upload Photo"
             style={({ pressed }) => [
@@ -93,48 +69,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.surface,
-  },
-  header: {
-    minHeight: 82,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  eyebrow: {
-    color: colors.muted,
-    fontSize: 10,
-    lineHeight: 15,
-    fontWeight: '700',
-    letterSpacing: 1.25,
-  },
-  appName: {
-    color: colors.navy,
-    fontSize: 19,
-    lineHeight: 25,
-    fontWeight: '800',
-  },
-  signOutButton: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-  },
-  signOutButtonPressed: {
-    backgroundColor: colors.input,
-  },
-  signOutButtonText: {
-    color: colors.navy,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
   },
   content: {
     flexGrow: 1,

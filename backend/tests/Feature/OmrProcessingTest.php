@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\ProcessOmrSheet;
 use App\Models\AnswerSheet;
+use App\Models\ExaminationApplicant;
 use App\Models\OmrProcessingJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -45,6 +46,127 @@ class OmrProcessingTest extends TestCase
         );
         $response->assertJsonPath('sheet.storage_disk', 'local');
         Storage::disk('local')->assertExists($response->json('sheet.image_path'));
+    }
+
+    public function test_new_submission_atomically_creates_applicant_sheet_and_job(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $staff = $this->omrUser();
+        $this->omrFolder($staff);
+        $key = $this->completeAnswerKey($staff);
+        Sanctum::actingAs($staff);
+
+        $response = $this->post('/api/sheets/upload', [
+            'submission_uuid' => 'd8bf7409-4b34-4459-a0c8-a37c6260a953',
+            'applicant_name' => 'Dela Cruz, Juan A.',
+            'examination_date' => '2026-11-04',
+            'mobile_number' => '09123456789',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+            'image' => UploadedFile::fake()->image('sheet.jpg', 1200, 1600),
+        ]);
+
+        $response->assertAccepted()
+            ->assertJsonPath('applicant.applicant_name', 'Dela Cruz, Juan A.')
+            ->assertJsonPath('applicant.folder_id', null)
+            ->assertJsonPath('applicant.answer_key_id', $key->id)
+            ->assertJsonPath('job.status', 'Queued');
+        $applicantId = $response->json('applicant.id');
+        $this->assertDatabaseHas('tbl_examination_applicants', [
+            'id' => $applicantId,
+            'submission_uuid' => 'd8bf7409-4b34-4459-a0c8-a37c6260a953',
+            'status' => 'Pending',
+        ]);
+        $created = ExaminationApplicant::findOrFail($applicantId);
+        $this->assertNull($created->folder_id);
+        $this->assertNull($created->filed_at);
+        $this->assertDatabaseHas('tbl_answer_sheets', ['applicant_id' => $applicantId]);
+        Queue::assertPushed(ProcessOmrSheet::class);
+    }
+
+    public function test_upload_does_not_require_an_active_folder(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $staff = $this->omrUser();
+        $this->completeAnswerKey($staff);
+        Sanctum::actingAs($staff);
+
+        $response = $this->post('/api/sheets/upload', [
+            'submission_uuid' => '2d5da86f-cb79-4d5e-9b66-e18a8abae146',
+            'applicant_name' => 'Dela Cruz, Juan A.',
+            'examination_date' => '2026-11-04',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+            'image' => UploadedFile::fake()->image('sheet.jpg', 1200, 1600),
+        ]);
+
+        $response->assertAccepted()
+            ->assertJsonPath('applicant.folder_id', null)
+            ->assertJsonPath('job.status', 'Queued');
+        $this->assertDatabaseHas('tbl_examination_applicants', [
+            'id' => $response->json('applicant.id'),
+            'folder_id' => null,
+        ]);
+        Queue::assertPushed(ProcessOmrSheet::class);
+    }
+
+    public function test_repeated_submission_uuid_returns_existing_job_without_duplicate_applicant(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $staff = $this->omrUser();
+        $this->omrFolder($staff);
+        $this->completeAnswerKey($staff);
+        Sanctum::actingAs($staff);
+        $payload = [
+            'submission_uuid' => '97bff253-fc4d-4f63-b91e-fe62ac129cd8',
+            'applicant_name' => 'Dela Cruz, Juan A.',
+            'examination_date' => '2026-11-04',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+        ];
+
+        $first = $this->post('/api/sheets/upload', [
+            ...$payload,
+            'image' => UploadedFile::fake()->image('first.jpg', 1200, 1600),
+        ])->assertAccepted();
+        $second = $this->post('/api/sheets/upload', [
+            ...$payload,
+            'image' => UploadedFile::fake()->image('second.jpg', 1200, 1600),
+        ])->assertAccepted();
+
+        $this->assertSame($first->json('applicant.id'), $second->json('applicant.id'));
+        $this->assertSame($first->json('job.id'), $second->json('job.id'));
+        $this->assertDatabaseCount('tbl_examination_applicants', 1);
+        $this->assertDatabaseCount('tbl_answer_sheets', 1);
+        $this->assertDatabaseCount('tbl_omr_processing_jobs', 1);
+        Queue::assertPushed(ProcessOmrSheet::class, 1);
+    }
+
+    public function test_invalid_image_does_not_create_an_applicant(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $staff = $this->omrUser();
+        $this->omrFolder($staff);
+        $this->completeAnswerKey($staff);
+        Sanctum::actingAs($staff);
+
+        $this->post('/api/sheets/upload', [
+            'submission_uuid' => '6be96f3c-d0e7-4e70-91cb-38eea08f1391',
+            'applicant_name' => 'Dela Cruz, Juan A.',
+            'examination_date' => '2026-11-04',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+            'image' => UploadedFile::fake()->create('sheet.txt', 10, 'text/plain'),
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseCount('tbl_examination_applicants', 0);
+        $this->assertDatabaseCount('tbl_answer_sheets', 0);
+        $this->assertDatabaseCount('tbl_omr_processing_jobs', 0);
+        Queue::assertNothingPushed();
     }
 
     public function test_upload_uses_the_database_backed_omr_queue(): void

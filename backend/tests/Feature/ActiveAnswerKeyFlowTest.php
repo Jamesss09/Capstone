@@ -33,6 +33,26 @@ class ActiveAnswerKeyFlowTest extends TestCase
             ->assertJsonPath('status', 'Pending');
     }
 
+    public function test_staff_identification_resolves_the_active_course_folder_without_an_internal_id(): void
+    {
+        $staff = $this->omrUser('Staff');
+        $activeKey = $this->completeAnswerKey($staff);
+        $folder = $this->omrFolder($staff);
+        Sanctum::actingAs($staff);
+
+        $this->postJson('/api/applicants', [
+            'applicant_name' => 'Dela Cruz, Maria A.',
+            'examination_date' => '2026-08-24',
+            'mobile_number' => '+639171234567',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+        ])->assertCreated()
+            ->assertJsonStructure(['id'])
+            ->assertJsonPath('folder_id', $folder->id)
+            ->assertJsonPath('answer_key_id', $activeKey->id)
+            ->assertJsonPath('mobile_number', '+639171234567');
+    }
+
     public function test_staff_cannot_choose_an_answer_key_or_processing_status(): void
     {
         $admin = $this->omrUser('Administrator');

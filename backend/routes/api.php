@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AnswerKeyController;
 use App\Http\Controllers\Api\ApplicantController;
 use App\Http\Controllers\Api\AuditLogController;
-use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExaminationFolderController;
@@ -36,17 +36,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('audit-logs', [AuditLogController::class, 'index']);
     });
 
-    // Admin-only: folders (result management)
+    // Both roles: read active folders for result filing. Mutations stay admin-only.
+    Route::get('folders', [ExaminationFolderController::class, 'index']);
+
+    // Admin-only: folder management
     Route::middleware('role:Administrator')->group(function () {
-        Route::apiResource('folders', ExaminationFolderController::class);
+        Route::apiResource('folders', ExaminationFolderController::class)->except(['index']);
     });
 
     // Staff: upload sheet + OMR job queue
     Route::post('sheets/upload', [OmrJobController::class, 'upload']);
     Route::get('omr-jobs/{job}', [OmrJobController::class, 'status']);
 
-    // Both roles: applicants (create) & results (view)
+    // Both roles: applicants (create) & results (view + file)
     Route::apiResource('applicants', ApplicantController::class);
+    Route::post('results/{result}/file', [ResultController::class, 'fileResult']);
     Route::apiResource('results', ResultController::class)->only(['index', 'show']);
 
     // Dashboard stats + live activity feed (Admin)

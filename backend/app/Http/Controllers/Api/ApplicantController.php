@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExaminationApplicant;
+use App\Models\ExaminationFolder;
 use App\Services\Omr\ActiveAnswerKeyResolver;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -34,18 +35,40 @@ class ApplicantController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'folder_id' => 'required|exists:tbl_examination_folders,id',
+            // folder_id remains accepted for existing admin integrations, but
+            // scanner staff do not need to know this internal database ID.
+            'folder_id' => 'sometimes|nullable|exists:tbl_examination_folders,id',
             'answer_key_id' => 'prohibited',
             'applicant_name' => 'required|string|max:255',
             'examination_date' => 'required|date',
             'status' => 'prohibited',
             'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
+            'mobile_number' => 'sometimes|nullable|string|max:30',
             // Chosen by staff on the mobile Identify Applicant screen.
             'course' => ['required', 'string', 'max:100', Rule::in(config('courses'))],
         ]);
 
         try {
             $applicant = DB::transaction(function () use ($data, $request) {
+                if (empty($data['folder_id'])) {
+                    $folder = ExaminationFolder::query()
+                        ->where('status', 'Active')
+                        ->where(function ($query) use ($data) {
+                            $query->where('course', $data['course'])->orWhere('course', '');
+                        })
+                        ->orderByRaw('CASE WHEN course = ? THEN 0 ELSE 1 END', [$data['course']])
+                        ->latest('id')
+                        ->first();
+
+                    if ($folder === null) {
+                        throw ValidationException::withMessages([
+                            'folder' => ['No active examination folder is available for this course.'],
+                        ]);
+                    }
+
+                    $data['folder_id'] = $folder->id;
+                }
+
                 $answerKey = $this->activeAnswerKeyResolver->resolve();
 
                 return ExaminationApplicant::create([
@@ -78,6 +101,7 @@ class ApplicantController extends Controller
             'examination_date' => 'sometimes|date',
             'status' => 'prohibited',
             'student_type' => 'sometimes|nullable|in:NEW,TRANSFEREE,OLD,RETURNEE',
+            'mobile_number' => 'sometimes|nullable|string|max:30',
             'course' => ['sometimes', 'required', 'string', 'max:100', Rule::in(config('courses'))],
         ]);
 

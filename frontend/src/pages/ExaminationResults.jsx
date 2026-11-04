@@ -666,8 +666,8 @@ function FolderResults({ folderId }) {
                 No results filed under {folder?.school_year} yet
               </h3>
               <p className="mt-1 text-sm text-[var(--muted)] max-w-md mx-auto">
-                Results populate here automatically after answer sheets are scanned and scored by
-                the mobile OMR scanner.
+                Results appear here after staff scan an answer sheet and save it to this school
+                year folder from the mobile OMR scanner.
               </p>
             </div>
           ) : filtered.length === 0 ? (
