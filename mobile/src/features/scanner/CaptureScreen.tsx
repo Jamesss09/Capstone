@@ -169,7 +169,9 @@ export function CaptureScreen() {
       >
         <View style={styles.contentWidth}>
           <Text style={styles.title}>Scan Answer Sheet</Text>
-          <Text style={styles.subtitle}>Align the answer sheet inside the frame.</Text>
+          <Text style={styles.subtitle}>
+            Use bright, even lighting. Keep the entire sheet flat and inside the frame.
+          </Text>
 
           <View style={styles.cameraViewport}>{renderCameraContent()}</View>
 
@@ -251,10 +253,10 @@ const styles = StyleSheet.create({
   permissionButtonText: { color: colors.navy, fontSize: 13, fontWeight: '800' },
   frameGuide: {
     position: 'absolute',
-    top: 20,
-    right: 34,
-    bottom: 20,
-    left: 34,
+    top: '4%',
+    left: '14%',
+    width: '72%',
+    aspectRatio: 2404 / 3328,
     alignItems: 'center',
     justifyContent: 'flex-end',
     borderWidth: 2,

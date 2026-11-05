@@ -42,7 +42,11 @@ describe('<CaptureScreen />', () => {
     expect(screen.getByText('CAPTURE')).toBeTruthy();
     expect(screen.getByText('Step 1 of 4')).toBeTruthy();
     expect(screen.getByText('Scan Answer Sheet')).toBeTruthy();
-    expect(screen.getByText('Align the answer sheet inside the frame.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Use bright, even lighting. Keep the entire sheet flat and inside the frame.',
+      ),
+    ).toBeTruthy();
     expect(screen.getByText('Align OMR sheet within the frame')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Capture answer sheet' })).toBeDisabled();
     const backButton = screen.getByRole('button', { name: 'Back to Scanner Home' });

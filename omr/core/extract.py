@@ -233,9 +233,9 @@ def refine_lattice(
 
     row_coverage = total_matched_rows / EXPECTED_ITEM_COUNT
     ring_coverage = total_ring_matches / EXPECTED_BUBBLE_COUNT
-    if row_coverage >= 0.8:
+    if row_coverage >= 0.8 and ring_coverage >= 0.7:
         quality = "good"
-    elif row_coverage >= 0.25:
+    elif row_coverage >= 0.25 and ring_coverage >= 0.1:
         quality = "degraded"
     else:
         quality = "poor"

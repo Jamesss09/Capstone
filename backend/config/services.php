@@ -38,7 +38,7 @@ return [
     'omr' => [
         'url' => env('OMR_SERVICE_URL', 'http://omr:5005'),
         'connect_timeout' => (float) env('OMR_CONNECT_TIMEOUT', 5),
-        'timeout' => (float) env('OMR_REQUEST_TIMEOUT', 120),
+        'timeout' => (float) env('OMR_REQUEST_TIMEOUT', 180),
     ],
 
 ];

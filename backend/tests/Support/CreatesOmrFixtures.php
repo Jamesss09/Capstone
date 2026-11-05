@@ -132,6 +132,10 @@ trait CreatesOmrFixtures
                 'model_id' => 'tmc-bubble-cnn-three-class-v1',
                 'checkpoint_sha256' => str_repeat('a', 64),
             ],
+            'capture_quality' => [
+                'bright_pixel_percentile' => 195.0,
+                'focus_score' => 900.0,
+            ],
             'registration' => ['method' => 'sift', 'matches' => 700, 'inliers' => 160],
             'lattice' => ['quality' => 'good', 'matched_rows' => 100],
             'warnings' => [],

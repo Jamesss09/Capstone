@@ -14,7 +14,7 @@ class OmrClient
      * @param  array<string, mixed>  $answerKey
      * @return array<string, mixed>
      */
-    public function recognize(AnswerSheet $sheet, array $answerKey): array
+    public function recognize(AnswerSheet $sheet, array $answerKey, int $processingJobId): array
     {
         $disk = Storage::disk($sheet->storage_disk ?: 'public');
         if (! $disk->exists($sheet->image_path)) {
@@ -37,6 +37,7 @@ class OmrClient
             ->post("{$url}/recognize", [
                 'answer_key' => json_encode($answerKey, JSON_THROW_ON_ERROR),
                 'answer_key_id' => (string) $answerKey['answer_key_id'],
+                'request_id' => "job-{$processingJobId}",
             ]);
 
         if ($response->clientError()) {

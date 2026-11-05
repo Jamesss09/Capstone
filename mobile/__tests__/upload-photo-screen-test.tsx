@@ -9,6 +9,7 @@ const mockReplace = jest.fn();
 const mockSignOut = jest.fn();
 const mockSetPhoto = jest.fn();
 const mockSetSource = jest.fn();
+const mockPersistAnswerSheetPhoto = jest.fn(async (uri: string, _mimeType: string) => uri);
 let mockApplicant: { id: number; code: string } | null = null;
 
 jest.mock('@expo/vector-icons', () => ({
@@ -28,7 +29,8 @@ jest.mock('@/features/scanner/ScannerWorkflowContext', () => ({
 }));
 
 jest.mock('@/features/scanner/answerSheetPhoto', () => ({
-  persistAnswerSheetPhoto: async (uri: string) => uri,
+  persistAnswerSheetPhoto: (uri: string, mimeType: string) =>
+    mockPersistAnswerSheetPhoto(uri, mimeType),
 }));
 
 jest.mock('expo-image-picker', () => ({
@@ -47,6 +49,7 @@ describe('<UploadPhotoScreen />', () => {
     mockReplace.mockReset();
     mockSetPhoto.mockReset();
     mockSetSource.mockReset();
+    mockPersistAnswerSheetPhoto.mockClear();
     mockApplicant = null;
     jest.mocked(ImagePicker.requestMediaLibraryPermissionsAsync).mockReset();
     jest.mocked(ImagePicker.launchImageLibraryAsync).mockReset();
@@ -69,9 +72,9 @@ describe('<UploadPhotoScreen />', () => {
     jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValue({
       canceled: false,
       assets: [{
-        uri: 'file:///answer-sheet.jpg',
-        fileName: 'answer-sheet.jpg',
-        mimeType: 'image/jpeg',
+        uri: 'file:///answer-sheet.png',
+        fileName: 'answer-sheet.png',
+        mimeType: 'image/png',
         width: 100,
         height: 100,
         type: 'image',
@@ -82,11 +85,21 @@ describe('<UploadPhotoScreen />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Choose answer sheet photo' }));
 
     await waitFor(() => {
+      expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 1,
+        selectionLimit: 1,
+      });
+      expect(mockPersistAnswerSheetPhoto).toHaveBeenCalledWith(
+        'file:///answer-sheet.png',
+        'image/png',
+      );
       expect(mockSetSource).toHaveBeenCalledWith('upload');
       expect(mockSetPhoto).toHaveBeenCalledWith({
-        uri: 'file:///answer-sheet.jpg',
-        fileName: 'answer-sheet.jpg',
-        mimeType: 'image/jpeg',
+        uri: 'file:///answer-sheet.png',
+        fileName: 'answer-sheet.png',
+        mimeType: 'image/png',
       });
       expect(mockPush).toHaveBeenCalledWith('/identify-applicant');
     });

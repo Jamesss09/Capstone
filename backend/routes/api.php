@@ -14,11 +14,11 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public: staff & admin login
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // Public: exchange the httpOnly refresh cookie for a new access token. The
 // access token has expired by design, so this cannot sit behind auth:sanctum.
-Route::post('/refresh', [AuthController::class, 'refresh']);
+Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1');
 
 // Authenticated
 Route::middleware('auth:sanctum')->group(function () {
@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Staff: upload sheet + OMR job queue
-    Route::post('sheets/upload', [OmrJobController::class, 'upload']);
+    Route::post('sheets/upload', [OmrJobController::class, 'upload'])->middleware('throttle:10,1');
     Route::get('omr-jobs/{job}', [OmrJobController::class, 'status']);
 
     // Both roles: applicants (create) & results (view + file)

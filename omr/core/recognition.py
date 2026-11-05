@@ -35,6 +35,11 @@ DEFAULT_REFERENCE = TEMPLATE_JSON.parent / "Answer_Key_Format.jpg"
 DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.80
 DEFAULT_ERASURE_THRESHOLD = 0.80
 REQUIRED_CLASSES = ("shaded", "empty", "erasure_smudge")
+CAPTURE_QUALITY_LONG_SIDE = 1200
+MIN_BRIGHT_PIXEL_PERCENTILE = 120.0
+MIN_FOCUS_SCORE = 100.0
+MIN_LATTICE_ROW_COVERAGE = 0.80
+MIN_LATTICE_RING_COVERAGE = 0.70
 
 
 class RecognitionError(ValueError):
@@ -200,21 +205,72 @@ def summarize_items(items: Sequence[dict[str, Any]]) -> dict[str, int]:
     }
 
 
+def analyze_capture_quality(image: np.ndarray) -> dict[str, float]:
+    """Measure lighting and focus at a stable size before costly registration."""
+    if not isinstance(image, np.ndarray) or image.size == 0:
+        raise RecognitionError("uploaded image is empty")
+    if image.ndim == 2:
+        gray = image
+    elif image.ndim == 3 and image.shape[2] == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    elif image.ndim == 3 and image.shape[2] == 4:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
+    else:
+        raise RecognitionError(f"unsupported uploaded image shape: {image.shape}")
+
+    long_side = max(gray.shape)
+    if long_side > CAPTURE_QUALITY_LONG_SIDE:
+        scale = CAPTURE_QUALITY_LONG_SIDE / long_side
+        gray = cv2.resize(
+            gray,
+            None,
+            fx=scale,
+            fy=scale,
+            interpolation=cv2.INTER_AREA,
+        )
+
+    bright_percentile = float(np.percentile(gray, 90))
+    focus_score = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    return {
+        "bright_pixel_percentile": round(bright_percentile, 2),
+        "focus_score": round(focus_score, 2),
+    }
+
+
+def validate_capture_image_quality(quality: dict[str, float]) -> None:
+    """Reject captures whose lighting or focus cannot support safe recognition."""
+    if quality["bright_pixel_percentile"] < MIN_BRIGHT_PIXEL_PERCENTILE:
+        raise RecognitionError(
+            "capture quality is too low: image is too dark; use brighter, even lighting and recapture"
+        )
+    if quality["focus_score"] < MIN_FOCUS_SCORE:
+        raise RecognitionError(
+            "capture quality is too low: image is too blurry; hold the phone steady and recapture"
+        )
+
+
 def capture_quality_warnings(
     registration: dict[str, Any], lattice: dict[str, Any]
 ) -> list[str]:
-    """Reject untrustworthy captures and return non-fatal quality warnings."""
-    quality = lattice.get("quality")
-    if quality == "poor":
-        raise RecognitionError(
-            "capture quality is too low: printed bubble lattice could not be aligned"
-        )
-    warnings = []
+    """Reject registration or lattice alignment that cannot support safe scoring."""
     if registration.get("method") != "sift":
-        warnings.append("registration_fallback")
-    if quality != "good":
-        warnings.append(f"lattice_{quality}")
-    return warnings
+        raise RecognitionError(
+            "capture quality is too low: printed content could not be aligned reliably; "
+            "keep the entire page visible, hold the phone parallel, and recapture"
+        )
+
+    row_coverage = float(lattice.get("row_coverage", 0.0))
+    ring_coverage = float(lattice.get("ring_coverage", 0.0))
+    if (
+        lattice.get("quality") != "good"
+        or row_coverage < MIN_LATTICE_ROW_COVERAGE
+        or ring_coverage < MIN_LATTICE_RING_COVERAGE
+    ):
+        raise RecognitionError(
+            "capture quality is too low: printed bubble rows could not be aligned reliably; "
+            "flatten the sheet, improve lighting, and recapture"
+        )
+    return []
 
 
 def verify_pipeline_artifacts(
@@ -318,6 +374,10 @@ class RecognitionService:
             )
         self.registrar = SheetRegistrar(self.reference)
 
+    def warmup(self) -> None:
+        """Prime registration, extraction, and inference using the verified reference."""
+        self.recognize(self.reference)
+
     def process(
         self,
         image: np.ndarray,
@@ -344,6 +404,9 @@ class RecognitionService:
             # Reject malformed, incomplete, inactive, or out-of-range keys
             # before spending several seconds on registration and inference.
             normalize_answer_key(answer_key)
+
+        capture_quality = analyze_capture_quality(image)
+        validate_capture_image_quality(capture_quality)
 
         started = perf_counter()
         try:
@@ -385,6 +448,7 @@ class RecognitionService:
                 "classes": list(self.loaded_model.classes),
                 "device": str(next(self.loaded_model.model.parameters()).device),
             },
+            "capture_quality": capture_quality,
             "registration": registration,
             "lattice": lattice,
             "warnings": warnings,

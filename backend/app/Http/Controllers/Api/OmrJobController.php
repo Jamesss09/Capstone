@@ -170,9 +170,9 @@ class OmrJobController extends Controller
         }
 
         return response()->json([
-            'applicant' => $applicant,
-            'sheet' => $sheet,
-            'job' => $job,
+            'applicant' => $applicant->withoutRelations(),
+            'sheet' => $sheet->withoutRelations(),
+            'job' => $job->withoutRelations(),
         ], 202);
     }
 

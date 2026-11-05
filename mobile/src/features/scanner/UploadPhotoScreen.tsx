@@ -50,9 +50,8 @@ export function UploadPhotoScreen() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [3, 4],
-        quality: 0.92,
+        allowsEditing: false,
+        quality: 1,
         selectionLimit: 1,
       });
 
@@ -89,7 +88,7 @@ export function UploadPhotoScreen() {
         <View style={styles.contentWidth}>
           <Text style={styles.title}>Upload Answer Sheet</Text>
           <Text style={styles.subtitle}>
-            Select a photo, then identify the applicant before uploading.
+            Select a clear photo showing the complete, flat answer sheet in even lighting.
           </Text>
 
           <View style={styles.photoPlaceholder}>

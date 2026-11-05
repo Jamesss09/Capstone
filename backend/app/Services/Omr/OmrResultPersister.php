@@ -223,6 +223,7 @@ class OmrResultPersister
             'size_bytes',
             'template_id',
             'model',
+            'capture_quality',
             'registration',
             'lattice',
             'warnings',

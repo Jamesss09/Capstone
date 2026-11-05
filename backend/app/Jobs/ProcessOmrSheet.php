@@ -22,7 +22,7 @@ class ProcessOmrSheet implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $timeout = 135;
+    public int $timeout = 210;
 
     public bool $failOnTimeout = true;
 
@@ -66,7 +66,11 @@ class ProcessOmrSheet implements ShouldQueue
 
         try {
             $answerKey = $payloadFactory->make($processingJob->sheet->applicant->answerKey);
-            $response = $client->recognize($processingJob->sheet, $answerKey);
+            $response = $client->recognize(
+                $processingJob->sheet,
+                $answerKey,
+                $processingJob->id,
+            );
             $persister->persist($processingJob, $response);
         } catch (DomainException|OmrRejectedException|OmrResponseException $exception) {
             $this->markFailed($exception);

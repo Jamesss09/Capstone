@@ -71,6 +71,7 @@ class OmrProcessingTest extends TestCase
             ->assertJsonPath('applicant.applicant_name', 'Dela Cruz, Juan A.')
             ->assertJsonPath('applicant.folder_id', null)
             ->assertJsonPath('applicant.answer_key_id', $key->id)
+            ->assertJsonMissingPath('applicant.answer_key')
             ->assertJsonPath('job.status', 'Queued');
         $applicantId = $response->json('applicant.id');
         $this->assertDatabaseHas('tbl_examination_applicants', [
@@ -256,6 +257,8 @@ class OmrProcessingTest extends TestCase
         ]);
         $this->assertSame('Processed', $applicant->fresh()->status);
         $this->assertSame('tmc-bubble-cnn-three-class-v1', $sheet->fresh()->recognition_metadata['model']['model_id']);
+        $this->assertSame(195, $sheet->fresh()->recognition_metadata['capture_quality']['bright_pixel_percentile']);
+        $this->assertSame(900, $sheet->fresh()->recognition_metadata['capture_quality']['focus_score']);
 
         Sanctum::actingAs($staff);
         $this->getJson("/api/omr-jobs/{$processingJob->id}")
@@ -265,12 +268,14 @@ class OmrProcessingTest extends TestCase
             ->assertJsonPath('result.blank_count', 1)
             ->assertJsonPath('result.invalid_count', 1);
 
-        Http::assertSent(function (Request $request) use ($key) {
+        Http::assertSent(function (Request $request) use ($key, $processingJob) {
             $answerKeyPart = collect($request->data())->firstWhere('name', 'answer_key');
+            $requestIdPart = collect($request->data())->firstWhere('name', 'request_id');
 
             return $request->url() === config('services.omr.url').'/recognize'
                 && $request->hasFile('file', 'jpeg-bytes', 'sheet.jpg')
-                && json_decode($answerKeyPart['contents'] ?? '', true)['answer_key_id'] === $key->id;
+                && json_decode($answerKeyPart['contents'] ?? '', true)['answer_key_id'] === $key->id
+                && ($requestIdPart['contents'] ?? null) === "job-{$processingJob->id}";
         });
         Http::assertSentCount(1);
     }

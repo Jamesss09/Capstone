@@ -4,7 +4,7 @@
 // a SameSite=lax cookie, and SameSite is decided by hostname, not port — so
 // localhost:5173 -> localhost:8000 is same-site and the cookie is sent, whereas
 // 127.0.0.1 would be treated as a different site and silently dropped.
-const API_URL = 'http://localhost:8000/api'
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
 
 const REFRESH_PATH = '/refresh'
 

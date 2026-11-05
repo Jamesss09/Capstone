@@ -8,10 +8,12 @@ from core.extract import BubbleCrop
 from core.recognition import (
     BubblePrediction,
     RecognitionError,
+    analyze_capture_quality,
     capture_quality_warnings,
     decide_items,
     select_bubble_class,
     summarize_items,
+    validate_capture_image_quality,
     verify_pipeline_artifacts,
 )
 
@@ -124,13 +126,38 @@ def test_production_policy_requires_erasure_probability_threshold():
     assert select_bubble_class(above_threshold, 0.80) == ("erasure_smudge", 0.85)
 
 
-def test_capture_quality_rejects_poor_lattice_and_flags_degraded_fallback():
-    with pytest.raises(RecognitionError, match="quality is too low"):
-        capture_quality_warnings({"method": "sift"}, {"quality": "poor"})
+def test_capture_image_quality_rejects_dark_and_blurry_images():
+    dark = analyze_capture_quality(np.zeros((600, 400, 3), dtype=np.uint8))
+    with pytest.raises(RecognitionError, match="too dark"):
+        validate_capture_image_quality(dark)
 
-    assert capture_quality_warnings(
-        {"method": "quad"}, {"quality": "degraded"}
-    ) == ["registration_fallback", "lattice_degraded"]
+    blurry = analyze_capture_quality(np.full((600, 400, 3), 200, dtype=np.uint8))
+    with pytest.raises(RecognitionError, match="too blurry"):
+        validate_capture_image_quality(blurry)
+
+    checker = np.indices((600, 400)).sum(axis=0) % 2 * 255
+    sharp = analyze_capture_quality(
+        np.repeat(checker.astype(np.uint8)[..., None], 3, axis=2)
+    )
+    validate_capture_image_quality(sharp)
+
+
+def test_capture_quality_requires_sift_and_reliable_lattice_coverage():
+    good_lattice = {
+        "quality": "good",
+        "row_coverage": 0.90,
+        "ring_coverage": 0.75,
+    }
+    assert capture_quality_warnings({"method": "sift"}, good_lattice) == []
+
+    with pytest.raises(RecognitionError, match="printed content"):
+        capture_quality_warnings({"method": "quad"}, good_lattice)
+
+    with pytest.raises(RecognitionError, match="bubble rows"):
+        capture_quality_warnings(
+            {"method": "sift"},
+            {"quality": "degraded", "row_coverage": 0.79, "ring_coverage": 0.69},
+        )
 
 
 def test_pipeline_artifact_hashes_detect_changed_reference(tmp_path: Path):
