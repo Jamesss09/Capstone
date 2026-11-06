@@ -1,12 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import { ResultScreen } from '@/features/scanner/ResultScreen';
-import { apiDownloadBytes, apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
 const mockReplace = jest.fn();
 const mockClearWorkflow = jest.fn();
-const mockDeleteCachedImage = jest.fn();
-const mockWriteCachedImage = jest.fn();
 
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: () => null,
@@ -15,20 +13,6 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace }),
   useLocalSearchParams: () => ({ jobId: '7' }),
-}));
-
-jest.mock('expo-file-system', () => ({
-  Paths: { cache: 'file:///cache' },
-  File: class MockFile {
-    exists = true;
-    size = 4;
-    uri = 'file:///cache/annotated-answer-sheet.jpg';
-
-    write = mockWriteCachedImage;
-    delete = mockDeleteCachedImage;
-
-    constructor() {}
-  },
 }));
 
 jest.mock('@/features/scanner/ScannerWorkflowContext', () => ({
@@ -41,7 +25,6 @@ jest.mock('@/auth/AuthContext', () => ({
 
 jest.mock('@/lib/api', () => ({
   ApiError: class ApiError extends Error {},
-  apiDownloadBytes: jest.fn(),
   apiRequest: jest.fn(),
 }));
 
@@ -79,11 +62,6 @@ describe('<ResultScreen />', () => {
   beforeEach(() => {
     mockReplace.mockReset();
     mockClearWorkflow.mockReset();
-    mockDeleteCachedImage.mockReset();
-    mockWriteCachedImage.mockReset();
-    mockWriteCachedImage.mockResolvedValue(undefined);
-    jest.mocked(apiDownloadBytes).mockReset();
-    jest.mocked(apiDownloadBytes).mockResolvedValue(new Uint8Array([255, 216, 255, 217]));
     jest.mocked(apiRequest).mockImplementation(async (path) => {
       if (path === '/omr-jobs/7') {
         return {
@@ -157,17 +135,8 @@ describe('<ResultScreen />', () => {
     expect(screen.getByText('Multi-shade')).toBeTruthy();
     expect(screen.getByText('Erasure')).toBeTruthy();
 
-    await waitFor(() => {
-      expect(apiDownloadBytes).toHaveBeenCalledWith(
-        '/omr-jobs/7/annotated-image',
-        'staff-token',
-      );
-      expect(mockWriteCachedImage).toHaveBeenCalled();
-    });
-
     await fireEvent.press(screen.getByRole('button', { name: 'Close scanned sheet viewer' }));
     expect(screen.queryByText('Annotated OMR review')).toBeNull();
-    expect(mockDeleteCachedImage).toHaveBeenCalled();
   });
 
   test('files the result into the selected active folder and confirms the save', async () => {

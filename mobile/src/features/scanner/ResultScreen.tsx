@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { File, Paths } from 'expo-file-system';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -19,7 +18,7 @@ import { formatApplicantId } from '@/features/scanner/applicantId';
 import { ScannerHeader } from '@/features/scanner/ScannerHeader';
 import { ScannerProgress } from '@/features/scanner/ScannerProgress';
 import { useScannerWorkflow } from '@/features/scanner/ScannerWorkflowContext';
-import { ApiError, apiDownloadBytes, apiRequest } from '@/lib/api';
+import { API_URL, ApiError, apiRequest } from '@/lib/api';
 import { colors } from '@/theme/colors';
 
 type SchoolYearFolder = {
@@ -129,10 +128,6 @@ export function ResultScreen() {
   const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [annotatedImageAvailable, setAnnotatedImageAvailable] = useState(true);
   const [annotatedImageFailed, setAnnotatedImageFailed] = useState(false);
-  const [isViewerImageLoading, setIsViewerImageLoading] = useState(false);
-  const [annotatedImageUri, setAnnotatedImageUri] = useState<string | null>(null);
-  const cachedAnnotatedImageRef = useRef<File | null>(null);
-  const viewerRequestRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,94 +194,21 @@ export function ResultScreen() {
     };
   }, [jobId, token]);
 
-  useEffect(() => {
-    return () => {
-      const cachedImage = cachedAnnotatedImageRef.current;
-      if (cachedImage?.exists) {
-        try {
-          cachedImage.delete();
-        } catch {
-          // Android may already have cleared this cache entry.
-        }
-      }
-    };
-  }, []);
-
   const selectedFolder =
     folders.find((folder) => folder.id === selectedFolderId) ?? applicant?.folder ?? null;
   const isFiled = savedMessage !== null;
   const canSave =
     !isFiled && !isSaving && selectedFolderId !== null && result !== null && folders.length > 0;
+  const annotatedImageUrl = jobId ? `${API_URL}/omr-jobs/${jobId}/annotated-image` : null;
   const imageSource =
-    !annotatedImageFailed && annotatedImageUri
-      ? { uri: annotatedImageUri }
+    !annotatedImageFailed && annotatedImageAvailable && annotatedImageUrl
+      ? {
+          uri: annotatedImageUrl,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
       : photo?.uri
         ? { uri: photo.uri }
         : null;
-
-  function removeCachedAnnotatedImage() {
-    const cachedImage = cachedAnnotatedImageRef.current;
-    cachedAnnotatedImageRef.current = null;
-    setAnnotatedImageUri(null);
-
-    if (cachedImage?.exists) {
-      try {
-        cachedImage.delete();
-      } catch {
-        // Cache cleanup must not interrupt result review.
-      }
-    }
-  }
-
-  async function openScannedSheetViewer() {
-    const requestId = ++viewerRequestRef.current;
-    setIsViewerVisible(true);
-    setAnnotatedImageFailed(false);
-    removeCachedAnnotatedImage();
-
-    if (!annotatedImageAvailable || !jobId || !token) {
-      setAnnotatedImageFailed(true);
-      return;
-    }
-
-    setIsViewerImageLoading(true);
-
-    try {
-      const bytes = await apiDownloadBytes(`/omr-jobs/${jobId}/annotated-image`, token);
-      const cachedImage = new File(
-        Paths.cache,
-        `annotated-answer-sheet-${jobId}-${Date.now()}.jpg`,
-      );
-      await cachedImage.write(bytes);
-
-      if (!cachedImage.exists || cachedImage.size === 0) {
-        throw new ApiError('The annotated answer sheet could not be cached.', 0);
-      }
-
-      if (viewerRequestRef.current !== requestId) {
-        cachedImage.delete();
-        return;
-      }
-
-      cachedAnnotatedImageRef.current = cachedImage;
-      setAnnotatedImageUri(cachedImage.uri);
-    } catch {
-      if (viewerRequestRef.current === requestId) {
-        setAnnotatedImageFailed(true);
-      }
-    } finally {
-      if (viewerRequestRef.current === requestId) {
-        setIsViewerImageLoading(false);
-      }
-    }
-  }
-
-  function closeScannedSheetViewer() {
-    viewerRequestRef.current += 1;
-    setIsViewerVisible(false);
-    setIsViewerImageLoading(false);
-    removeCachedAnnotatedImage();
-  }
 
   async function saveToAdminPortal() {
     if (!token || !result || selectedFolderId === null || isFiled) {
@@ -421,7 +343,10 @@ export function ResultScreen() {
             </View>
 
             <Pressable
-              onPress={() => void openScannedSheetViewer()}
+              onPress={() => {
+                setAnnotatedImageFailed(false);
+                setIsViewerVisible(true);
+              }}
               accessibilityRole="button"
               accessibilityLabel="View Scanned Sheet"
               style={({ pressed }) => [
@@ -546,7 +471,7 @@ export function ResultScreen() {
         animationType="slide"
         presentationStyle="fullScreen"
         visible={isViewerVisible}
-        onRequestClose={closeScannedSheetViewer}
+        onRequestClose={() => setIsViewerVisible(false)}
       >
         <SafeAreaView style={styles.viewerSafeArea} edges={['top', 'right', 'bottom', 'left']}>
           <View style={styles.viewerHeader}>
@@ -555,7 +480,7 @@ export function ResultScreen() {
               <Text style={styles.viewerSubtitle}>Annotated OMR review</Text>
             </View>
             <Pressable
-              onPress={closeScannedSheetViewer}
+              onPress={() => setIsViewerVisible(false)}
               accessibilityRole="button"
               accessibilityLabel="Close scanned sheet viewer"
               style={({ pressed }) => [styles.viewerCloseButton, pressed && styles.viewerClosePressed]}
@@ -568,24 +493,14 @@ export function ResultScreen() {
             contentContainerStyle={styles.viewerContent}
             showsVerticalScrollIndicator={false}
           >
-            {isViewerImageLoading ? (
-              <View style={styles.imageUnavailableBox}>
-                <ActivityIndicator color={colors.gold} size="large" />
-                <Text style={styles.imageUnavailableText}>Loading annotated answer sheet…</Text>
-              </View>
-            ) : imageSource ? (
+            {imageSource ? (
               <View style={styles.imageFrame}>
                 <Image
                   source={imageSource}
                   resizeMode="contain"
                   style={styles.annotatedImage}
                   accessibilityLabel="Annotated scanned answer sheet"
-                  onError={() => {
-                    if (annotatedImageUri) {
-                      setAnnotatedImageFailed(true);
-                      removeCachedAnnotatedImage();
-                    }
-                  }}
+                  onError={() => setAnnotatedImageFailed(true)}
                 />
               </View>
             ) : (
