@@ -180,10 +180,14 @@ class OmrJobController extends Controller
     private function resolveApplicant(array $data, Request $request): ExaminationApplicant
     {
         if (! empty($data['applicant_id'])) {
-            return ExaminationApplicant::query()
+            $applicant = ExaminationApplicant::query()
                 ->with('answerKey.items')
                 ->lockForUpdate()
                 ->findOrFail($data['applicant_id']);
+
+            $this->authorizeApplicantUpload($applicant, $request);
+
+            return $applicant;
         }
 
         $existing = ExaminationApplicant::query()
@@ -193,6 +197,8 @@ class OmrJobController extends Controller
             ->first();
 
         if ($existing !== null) {
+            $this->authorizeApplicantUpload($existing, $request);
+
             return $existing;
         }
 
@@ -209,6 +215,13 @@ class OmrJobController extends Controller
             'status' => 'Pending',
             'created_by' => $request->user()->id,
         ])->load('answerKey.items');
+    }
+
+    private function authorizeApplicantUpload(ExaminationApplicant $applicant, Request $request): void
+    {
+        if ($request->user()->role !== 'Administrator' && $applicant->created_by !== $request->user()->id) {
+            abort(403, 'You may only upload answer sheets for applicants that you submitted.');
+        }
     }
 
     public function status(Request $request, OmrProcessingJob $job): JsonResponse

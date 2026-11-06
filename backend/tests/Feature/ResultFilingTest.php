@@ -46,11 +46,12 @@ class ResultFilingTest extends TestCase
         $folder = $this->folder($admin);
         [$applicant, $result] = $this->unfiledResult($staff);
 
-        Sanctum::actingAs($staff);
+        Sanctum::actingAs($admin);
         $this->getJson("/api/results?folder_id={$folder->id}")
             ->assertOk()
             ->assertJsonCount(0);
 
+        Sanctum::actingAs($staff);
         $this->postJson("/api/results/{$result->id}/file", ['folder_id' => $folder->id])
             ->assertOk()
             ->assertJsonPath('message', 'Successfully Saved To Admin Portal')
@@ -68,6 +69,7 @@ class ResultFilingTest extends TestCase
             'record_id' => $result->id,
         ]);
 
+        Sanctum::actingAs($admin);
         $this->getJson("/api/results?folder_id={$folder->id}")
             ->assertOk()
             ->assertJsonCount(1)

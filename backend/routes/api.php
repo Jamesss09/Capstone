@@ -34,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('answer-keys/{answer_key}/items', [AnswerKeyController::class, 'replaceItems']);
         Route::apiResource('settings', SettingController::class);
         Route::get('audit-logs', [AuditLogController::class, 'index']);
+        Route::apiResource('applicants', ApplicantController::class);
+        Route::apiResource('results', ResultController::class)->only(['index', 'show']);
     });
 
     // Both roles: read active folders for result filing. Mutations stay admin-only.
@@ -48,10 +50,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('sheets/upload', [OmrJobController::class, 'upload'])->middleware('throttle:10,1');
     Route::get('omr-jobs/{job}', [OmrJobController::class, 'status']);
 
-    // Both roles: applicants (create) & results (view + file)
-    Route::apiResource('applicants', ApplicantController::class);
+    // Staff may file only results they submitted; the controller enforces
+    // ownership. Applicant/result administration remains administrator-only.
     Route::post('results/{result}/file', [ResultController::class, 'fileResult']);
-    Route::apiResource('results', ResultController::class)->only(['index', 'show']);
 
     // Dashboard stats + live activity feed (Admin)
     Route::get('dashboard', DashboardController::class)->middleware('role:Administrator');

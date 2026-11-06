@@ -146,6 +146,33 @@ class OmrProcessingTest extends TestCase
         Queue::assertPushed(ProcessOmrSheet::class, 1);
     }
 
+    public function test_staff_cannot_reuse_another_staffs_submission_uuid(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $owner = $this->omrUser();
+        $otherStaff = $this->omrUser();
+        $key = $this->completeAnswerKey($owner);
+        $applicant = $this->omrApplicant($owner, $key);
+        $applicant->update(['submission_uuid' => '3eab1ca7-d702-47b9-b49d-457e1604d149']);
+        Sanctum::actingAs($otherStaff);
+
+        $this->post('/api/sheets/upload', [
+            'submission_uuid' => '3eab1ca7-d702-47b9-b49d-457e1604d149',
+            'applicant_name' => 'Unauthorized Duplicate',
+            'examination_date' => '2026-11-04',
+            'student_type' => 'NEW',
+            'course' => 'BSIT',
+            'image' => UploadedFile::fake()->image('sheet.jpg', 1200, 1600),
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('tbl_examination_applicants', 1);
+        $this->assertDatabaseCount('tbl_answer_sheets', 0);
+        $this->assertDatabaseCount('tbl_omr_processing_jobs', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('answer_sheets'));
+        Queue::assertNothingPushed();
+    }
+
     public function test_invalid_image_does_not_create_an_applicant(): void
     {
         Storage::fake('local');
@@ -190,6 +217,27 @@ class OmrProcessingTest extends TestCase
         }
 
         $this->assertDatabaseHas('jobs', ['queue' => 'omr']);
+    }
+
+    public function test_staff_cannot_upload_for_another_staffs_existing_applicant(): void
+    {
+        Storage::fake('local');
+        Queue::fake();
+        $owner = $this->omrUser();
+        $otherStaff = $this->omrUser();
+        $key = $this->completeAnswerKey($owner);
+        $applicant = $this->omrApplicant($owner, $key);
+        Sanctum::actingAs($otherStaff);
+
+        $this->post('/api/sheets/upload', [
+            'applicant_id' => $applicant->id,
+            'image' => UploadedFile::fake()->image('sheet.jpg', 1200, 1600),
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('tbl_answer_sheets', 0);
+        $this->assertDatabaseCount('tbl_omr_processing_jobs', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('answer_sheets'));
+        Queue::assertNothingPushed();
     }
 
     public function test_worker_calls_omr_and_atomically_persists_answers_and_result(): void

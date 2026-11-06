@@ -191,7 +191,7 @@ export function LoginScreen() {
           <View style={styles.institutionBlock}>
             <View style={styles.goldLine} />
             <Text style={styles.institutionName}>Trinidad Municipal College</Text>
-            <Text style={styles.institutionSubtitle}>Entrance Examination Management System</Text>
+            <Text style={styles.institutionSubtitle}>Entrance Examination Recognition and Scoring System</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
