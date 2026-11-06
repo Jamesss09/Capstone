@@ -108,11 +108,11 @@ describe('mobile API session handling', () => {
       refreshAccessToken,
       onSessionExpired: jest.fn(),
     });
-    const upload = jest
-      .fn()
-      .mockResolvedValueOnce({ status: 401, body: JSON.stringify({ message: 'Unauthenticated.' }) })
-      .mockResolvedValueOnce({ status: 201, body: JSON.stringify({ job: { id: 9 } }) });
-    const file = { upload } as unknown as File;
+    jest.mocked(expoFetch)
+      .mockResolvedValueOnce(jsonResponse(401, { message: 'Unauthenticated.' }))
+      .mockResolvedValueOnce(jsonResponse(201, { job: { id: 9 } }));
+    const file = new Blob(['image-bytes'], { type: 'image/jpeg' }) as unknown as File;
+    Object.defineProperty(file, 'name', { value: 'answer-sheet.jpg' });
     const parameters = { submission_uuid: 'd8bf7409-4b34-4459-a0c8-a37c6260a953' };
 
     await expect(
@@ -124,18 +124,26 @@ describe('mobile API session handling', () => {
       }),
     ).resolves.toEqual({ job: { id: 9 } });
 
-    expect(upload).toHaveBeenCalledTimes(2);
-    expect(upload.mock.calls[0]?.[1]).toEqual(
-      expect.objectContaining({
-        parameters,
-        headers: expect.objectContaining({ Authorization: 'Bearer expired-token' }),
-      }),
+    expect(expoFetch).toHaveBeenCalledTimes(2);
+
+    const firstRequest = jest.mocked(expoFetch).mock.calls[0]?.[1];
+    const firstBody = firstRequest?.body as FormData;
+    expect(firstBody.get('submission_uuid')).toBe(parameters.submission_uuid);
+    expect(firstBody.get('image')).toEqual(
+      expect.objectContaining({ name: 'answer-sheet.jpg', type: 'image/jpeg', size: 11 }),
     );
-    expect(upload.mock.calls[1]?.[1]).toEqual(
-      expect.objectContaining({
-        parameters,
-        headers: expect.objectContaining({ Authorization: 'Bearer fresh-token' }),
-      }),
+    expect(firstRequest?.headers).toEqual(
+      expect.objectContaining({ Authorization: 'Bearer expired-token' }),
+    );
+
+    const secondRequest = jest.mocked(expoFetch).mock.calls[1]?.[1];
+    const secondBody = secondRequest?.body as FormData;
+    expect(secondBody.get('submission_uuid')).toBe(parameters.submission_uuid);
+    expect(secondBody.get('image')).toEqual(
+      expect.objectContaining({ name: 'answer-sheet.jpg', type: 'image/jpeg', size: 11 }),
+    );
+    expect(secondRequest?.headers).toEqual(
+      expect.objectContaining({ Authorization: 'Bearer fresh-token' }),
     );
   });
 });

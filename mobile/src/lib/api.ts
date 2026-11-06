@@ -1,5 +1,5 @@
 import { fetch as expoFetch } from 'expo/fetch';
-import { type File, UploadType } from 'expo-file-system';
+import { type File } from 'expo-file-system';
 
 const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
@@ -202,20 +202,28 @@ async function uploadFile<T>(
   options: FileUploadOptions,
   token?: string,
 ): Promise<{ payload: T & ErrorPayload; status: number }> {
-  let result;
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(options.parameters ?? {})) {
+    formData.append(key, value);
+  }
+
+  formData.append(options.fieldName, file, file.name || 'answer-sheet');
+
+  let response: Response;
 
   try {
-    result = await file.upload(`${API_URL}${path}`, {
-      httpMethod: 'POST',
-      uploadType: UploadType.MULTIPART,
-      fieldName: options.fieldName,
-      mimeType: options.mimeType,
-      parameters: options.parameters,
-      sessionType: 'foreground',
+    // FileSystemUploadTask.start can be rejected by Expo Go before the
+    // request reaches Laravel. Expo SDK 58 documents File as a Blob, so use
+    // expo/fetch + FormData for a normal multipart request instead.
+    response = await expoFetch(`${API_URL}${path}`, {
+      method: 'POST',
+      credentials: 'include',
       headers: {
         Accept: 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      body: formData,
     });
   } catch (error) {
     const reason = error instanceof Error && error.message ? ` (${error.message})` : '';
@@ -229,12 +237,12 @@ async function uploadFile<T>(
   let payload: T & ErrorPayload;
 
   try {
-    payload = JSON.parse(result.body) as T & ErrorPayload;
+    payload = (await response.json()) as T & ErrorPayload;
   } catch {
     payload = {} as T & ErrorPayload;
   }
 
-  return { payload, status: result.status };
+  return { payload, status: response.status };
 }
 
 export async function apiUploadFile<T>(
