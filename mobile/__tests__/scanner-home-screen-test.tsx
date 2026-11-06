@@ -42,6 +42,7 @@ describe('<ScannerHomeScreen />', () => {
     expect(screen.getByRole('button', { name: 'Start Scan' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Upload Photo' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Sign Out' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'About TMC Scanner' })).toBeTruthy();
   });
 
   test('asks for confirmation before signing out', async () => {
@@ -74,5 +75,14 @@ describe('<ScannerHomeScreen />', () => {
 
     expect(mockPush).toHaveBeenCalledWith('/upload');
     expect(mockClearWorkflow).toHaveBeenCalledTimes(1);
+  });
+
+  test('opens the About screen from the separate header action', async () => {
+    await render(<ScannerHomeScreen />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'About TMC Scanner' }));
+
+    expect(mockPush).toHaveBeenCalledWith('/about');
+    expect(mockClearWorkflow).not.toHaveBeenCalled();
   });
 });

@@ -61,6 +61,16 @@ export function ScannerHomeScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <Pressable
+        onPress={() => router.push('/about')}
+        accessibilityRole="button"
+        accessibilityLabel="About TMC Scanner"
+        style={({ pressed }) => [styles.aboutButton, pressed && styles.aboutButtonPressed]}
+      >
+        <Ionicons name="information-circle-outline" color={colors.navy} size={19} />
+        <Text style={styles.aboutButtonText}>About</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -138,6 +148,29 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: colors.navy,
     fontSize: 14,
+    fontWeight: '800',
+  },
+  aboutButton: {
+    position: 'absolute',
+    right: 18,
+    bottom: 18,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 14,
+  },
+  aboutButtonPressed: {
+    backgroundColor: colors.input,
+  },
+  aboutButtonText: {
+    color: colors.navy,
+    fontSize: 12,
     fontWeight: '800',
   },
 });

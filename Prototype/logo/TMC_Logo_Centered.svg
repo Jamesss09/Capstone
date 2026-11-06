@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Trinidad Municipal College seal</title>
+  <desc id="desc">Centered circular seal for Trinidad Municipal College with a flame, open book, TMC monogram, motto, founding year, and location.</desc>
+
+  <defs>
+    <path id="college-name-arc" d="M 146 518 A 366 366 0 0 1 878 518"/>
+    <path id="motto-arc" d="M 356 706 Q 512 790 668 706"/>
+  </defs>
+
+  <!-- The artwork is centered at 512,512; the area outside the seal is transparent. -->
+  <circle cx="512" cy="512" r="496" fill="#123B61"/>
+  <circle cx="512" cy="512" r="466" fill="none" stroke="#FFFFFF" stroke-width="10"/>
+
+  <!-- College name -->
+  <text fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="400" letter-spacing="1.5">
+    <textPath xlink:href="#college-name-arc" startOffset="50%" text-anchor="middle">TRINIDAD MUNICIPAL COLLEGE</textPath>
+  </text>
+
+  <!-- Flame -->
+  <path fill="#F5B91B" transform="translate(512 0) scale(.82 1) translate(-512 0)" d="M512 344c-39 0-67-25-67-65 0-27 14-48 23-68 8-18 9-35 2-53 32 18 46 43 42 76 13-18 27-32 46-43-6 22 1 40 12 59 10 17 17 35 15 53-4 27-28 41-73 41Z"/>
+
+  <!-- Open book: the gold and navy outlines use the same centered geometry. -->
+  <path d="M512 398C458 365 407 386 300 369v276c76 32 143-7 212 31 69-38 136 1 212-31V369c-107 17-158-4-212 29Z" fill="#FFFFFF" stroke="#D19B18" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M512 398C458 365 407 386 300 369v276c76 32 143-7 212 31 69-38 136 1 212-31V369c-107 17-158-4-212 29Z" fill="none" stroke="#123B61" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M512 407v253" fill="none" stroke="#E7B126" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+
+  <!-- Centered, hand-built TMC monogram -->
+  <g fill="#C9971B">
+    <!-- Decorative cap above the M -->
+    <path d="M428 424h168l-14 25H442Z"/>
+
+    <!-- T -->
+    <path d="M350 480h96v23h-35v113l-13 10-14-10V503h-34Z"/>
+
+    <!-- Stylized M / three academic pillars -->
+    <path d="M452 459h120v22H452Z"/>
+    <path d="M463 481h27l7 97-18-12-10-10Z"/>
+    <path d="M499 481h26v119l-13 8-13-8Z"/>
+    <path d="M534 481h27l-6 75-10 10-18 12Z"/>
+
+    <!-- C -->
+    <path d="M615 480h52l15 15-6 31h-26v-18h-27l-10 10v70l10 10h27v-21h28v33l-16 16h-47l-31-29v-88Z"/>
+  </g>
+
+  <!-- Motto -->
+  <text fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="29" font-style="italic" letter-spacing=".3">
+    <textPath xlink:href="#motto-arc" startOffset="50%" text-anchor="middle">A Tradition of Excellence</textPath>
+  </text>
+
+  <!-- Symmetrical laurel branches -->
+  <g fill="none" stroke="#F5B91B" stroke-width="5" stroke-linecap="round">
+    <path d="M296 823C257 777 229 719 218 649"/>
+    <path d="M728 823C767 777 795 719 806 649"/>
+    <path d="M277 788C241 741 218 699 207 662" opacity=".85"/>
+    <path d="M747 788C783 741 806 699 817 662" opacity=".85"/>
+    <path d="M258 752C232 713 215 679 208 650" opacity=".7"/>
+    <path d="M766 752C792 713 809 679 816 650" opacity=".7"/>
+  </g>
+  <g fill="#F5B91B">
+    <g transform="translate(0 2)">
+      <ellipse cx="292" cy="807" rx="30" ry="10" transform="rotate(24 292 807)"/>
+      <ellipse cx="263" cy="781" rx="29" ry="10" transform="rotate(18 263 781)"/>
+      <ellipse cx="242" cy="749" rx="27" ry="9" transform="rotate(12 242 749)"/>
+      <ellipse cx="229" cy="715" rx="25" ry="8" transform="rotate(4 229 715)"/>
+      <ellipse cx="308" cy="773" rx="28" ry="10" transform="rotate(58 308 773)"/>
+      <ellipse cx="281" cy="742" rx="27" ry="9" transform="rotate(66 281 742)"/>
+      <ellipse cx="260" cy="707" rx="25" ry="8" transform="rotate(74 260 707)"/>
+      <ellipse cx="245" cy="672" rx="22" ry="7" transform="rotate(80 245 672)"/>
+    </g>
+    <g transform="translate(1024 2) scale(-1 1)">
+      <ellipse cx="292" cy="807" rx="30" ry="10" transform="rotate(24 292 807)"/>
+      <ellipse cx="263" cy="781" rx="29" ry="10" transform="rotate(18 263 781)"/>
+      <ellipse cx="242" cy="749" rx="27" ry="9" transform="rotate(12 242 749)"/>
+      <ellipse cx="229" cy="715" rx="25" ry="8" transform="rotate(4 229 715)"/>
+      <ellipse cx="308" cy="773" rx="28" ry="10" transform="rotate(58 308 773)"/>
+      <ellipse cx="281" cy="742" rx="27" ry="9" transform="rotate(66 281 742)"/>
+      <ellipse cx="260" cy="707" rx="25" ry="8" transform="rotate(74 260 707)"/>
+      <ellipse cx="245" cy="672" rx="22" ry="7" transform="rotate(80 245 672)"/>
+    </g>
+  </g>
+
+  <!-- Founding year and location -->
+  <text x="512" y="867" fill="#E7B126" font-family="Georgia, 'Times New Roman', serif" font-size="59" text-anchor="middle" letter-spacing="2">1985</text>
+  <text x="512" y="911" fill="#E7B126" font-family="Georgia, 'Times New Roman', serif" font-size="27" text-anchor="middle" letter-spacing=".5">Trinidad, Bohol</text>
+</svg>
