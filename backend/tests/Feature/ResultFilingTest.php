@@ -56,7 +56,8 @@ class ResultFilingTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Successfully Saved To Admin Portal')
             ->assertJsonPath('applicant.folder_id', $folder->id)
-            ->assertJsonPath('applicant.folder.school_year', 'SY 2026-2027');
+            ->assertJsonPath('applicant.folder.school_year', 'SY 2026-2027')
+            ->assertJsonPath('result.answer_key.exam_title', 'TMC Entrance Examination');
 
         $applicant->refresh();
         $this->assertSame($folder->id, $applicant->folder_id);

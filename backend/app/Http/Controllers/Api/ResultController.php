@@ -132,7 +132,7 @@ class ResultController extends Controller
         return response()->json([
             'message' => 'Successfully Saved To Admin Portal',
             'applicant' => $filedApplicant,
-            'result' => $result->fresh(),
+            'result' => $result->fresh(['answerKey:id,exam_title']),
         ]);
     }
 }

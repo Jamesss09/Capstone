@@ -233,7 +233,7 @@ class OmrJobController extends Controller
         $job->load([
             'sheet.applicant:id,folder_id,answer_key_id,applicant_name,mobile_number,examination_date,status,student_type,course,filed_at,filed_by,created_by',
             'sheet.applicant.folder:id,course,school_year,status',
-            'sheet.applicant.result',
+            'sheet.applicant.result.answerKey:id,exam_title',
         ]);
 
         return response()->json([

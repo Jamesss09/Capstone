@@ -6,6 +6,57 @@ __pycache__/
 .venv/
 venv/
 
+# Local environments and credentials
+.env*
+*.env
+!.env.example
+!.env.*.example
+!*.env.example
+!*.example.env
+.npmrc
+.pypirc
+.netrc
+.htpasswd
+auth.json
+*credentials*.json
+*service-account*.json
+client_secret*.json
+application_default_credentials.json
+*-firebase-adminsdk-*.json
+google-services.json
+GoogleService-Info.plist
+token.json
+tokens.json
+secrets/
+.secret
+.secrets
+secrets.*
+*.secret
+*.secrets
+!secrets.example.*
+!*.example.secret
+!*.example.secrets
+*.tfvars
+*.tfvars.json
+!*.example.tfvars
+!*.example.tfvars.json
+
+# Private keys and signing material
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.ppk
+*.kdbx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
 # Builds
 dist/
 build/
@@ -13,9 +64,6 @@ build/
 *.tsbuildinfo
 
 # Laravel
-.env
-.env.backup
-.env.production
 storage/*.key
 storage/logs/*
 !storage/logs/.gitignore
@@ -28,8 +76,6 @@ storage/framework/views/*
 
 # React Native
 *.log
-*.keystore
-!debug.keystore
 ios/Pods/
 *.hmap
 
@@ -45,6 +91,18 @@ storage/app/uploads/*
 
 # OMR dataset (raw sheets, crops, manifests)
 omr/dataset/
+
+# Database exports and private backup archives
+backups/
+dumps/
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.sqlite*
+*.db
+*.db-*
+!*.example.sql
 
 # Test artifacts
 .phpunit.result.cache

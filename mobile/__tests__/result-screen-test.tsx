@@ -36,6 +36,10 @@ const result = {
   correct_count: 98,
   incorrect_count: 2,
   passing_score: '75.00',
+  answer_key: {
+    id: 9,
+    exam_title: 'TMC Entrance Examination',
+  },
 };
 
 const applicant = {
@@ -96,6 +100,8 @@ describe('<ResultScreen />', () => {
     expect(screen.getByText('98%')).toBeTruthy();
     expect(screen.getAllByText('Passed')).toHaveLength(2);
     expect(screen.getByText('Correct Answers')).toBeTruthy();
+    expect(screen.getByText('Answer Key')).toBeTruthy();
+    expect(screen.getByText('TMC Entrance Examination')).toBeTruthy();
     expect(screen.getByText('98')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy();
     expect(screen.getByText('Total Items')).toBeTruthy();

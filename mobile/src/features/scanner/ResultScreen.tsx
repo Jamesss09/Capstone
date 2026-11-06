@@ -35,6 +35,10 @@ type ExaminationResult = {
   correct_count: number;
   incorrect_count: number;
   passing_score: string | number;
+  answer_key: {
+    id: number;
+    exam_title: string;
+  } | null;
 };
 
 type ResultApplicant = {
@@ -288,6 +292,12 @@ export function ResultScreen() {
             </View>
 
             <View style={styles.stats}>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Answer Key</Text>
+                <Text style={[styles.statValue, styles.answerKeyValue]}>
+                  {result.answer_key?.exam_title ?? '—'}
+                </Text>
+              </View>
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Correct Answers</Text>
                 <Text style={styles.statValue}>{result.correct_count}</Text>
@@ -587,6 +597,7 @@ const styles = StyleSheet.create({
   lastStatRow: { borderBottomWidth: 0 },
   statLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   statValue: { color: colors.navy, fontSize: 13, fontWeight: '800' },
+  answerKeyValue: { flex: 1, marginLeft: 18, textAlign: 'right' },
   fileDivider: {
     flexDirection: 'row',
     alignItems: 'center',

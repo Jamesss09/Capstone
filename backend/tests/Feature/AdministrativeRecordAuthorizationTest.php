@@ -72,9 +72,13 @@ class AdministrativeRecordAuthorizationTest extends TestCase
         $this->getJson("/api/applicants/{$applicant->id}")
             ->assertOk()
             ->assertJsonPath('id', $applicant->id);
-        $this->getJson('/api/results')->assertOk()->assertJsonCount(1);
+        $this->getJson('/api/results')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.answer_key.exam_title', 'TMC Entrance Examination');
         $this->getJson("/api/results/{$result->id}")
             ->assertOk()
-            ->assertJsonPath('id', $result->id);
+            ->assertJsonPath('id', $result->id)
+            ->assertJsonPath('answer_key.exam_title', 'TMC Entrance Examination');
     }
 }

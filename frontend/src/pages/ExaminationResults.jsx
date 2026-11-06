@@ -414,7 +414,7 @@ function NewFolderModal({ token, onClose, onCreated }) {
 
 function ResultDetail({ result, onClose }) {
   const applicant = result.applicant ?? {}
-  const ak = result.answerKey ?? {}
+  const ak = result.answer_key ?? {}
   const score = Number(result.score)
   const passing = Number(result.passing_score ?? ak.passing_score ?? 0)
 

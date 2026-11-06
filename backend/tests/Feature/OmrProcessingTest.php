@@ -314,7 +314,8 @@ class OmrProcessingTest extends TestCase
             ->assertJsonPath('job.status', 'Completed')
             ->assertJsonPath('result.score', '98.02')
             ->assertJsonPath('result.blank_count', 1)
-            ->assertJsonPath('result.invalid_count', 1);
+            ->assertJsonPath('result.invalid_count', 1)
+            ->assertJsonPath('result.answer_key.exam_title', 'TMC Entrance Examination');
 
         Http::assertSent(function (Request $request) use ($key, $processingJob) {
             $answerKeyPart = collect($request->data())->firstWhere('name', 'answer_key');
