@@ -19,6 +19,28 @@ type FileUploadOptions = {
   parameters?: Record<string, string>;
 };
 
+type ApiRequestOptions = RequestInit & {
+  token?: string;
+};
+
+type ApiAuthHandlers = {
+  getAccessToken: () => string | null;
+  refreshAccessToken: () => Promise<string | null>;
+  onSessionExpired: () => Promise<void> | void;
+};
+
+export type MobileTokenResponse<TUser> = {
+  token: string;
+  expires_at: string | null;
+  refresh_token: string;
+  refresh_expires_at: string;
+  user: TUser;
+};
+
+let authHandlers: ApiAuthHandlers | null = null;
+let refreshInFlight: Promise<string> | null = null;
+let expirationInFlight: Promise<void> | null = null;
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -47,11 +69,78 @@ function firstValidationMessage(errors?: ValidationErrors): string | null {
   return null;
 }
 
-export async function apiRequest<T>(
+function responseError(payload: ErrorPayload, status: number, fallback: string): ApiError {
+  return new ApiError(
+    firstValidationMessage(payload.errors) || payload.message || fallback,
+    status,
+  );
+}
+
+function currentToken(fallback?: string): string | undefined {
+  if (!fallback) {
+    return undefined;
+  }
+
+  return authHandlers?.getAccessToken() ?? fallback;
+}
+
+async function expireSession(): Promise<void> {
+  if (!authHandlers) {
+    return;
+  }
+
+  expirationInFlight ??= Promise.resolve(authHandlers.onSessionExpired()).finally(() => {
+    expirationInFlight = null;
+  });
+
+  await expirationInFlight;
+}
+
+async function refreshAccessToken(): Promise<string> {
+  if (!authHandlers) {
+    throw new ApiError('Your session has expired. Please sign in again.', 401);
+  }
+
+  refreshInFlight ??= authHandlers
+    .refreshAccessToken()
+    .then((token) => {
+      if (!token) {
+        throw new ApiError('Your session has expired. Please sign in again.', 401);
+      }
+
+      return token;
+    })
+    .catch(async (error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) {
+        await expireSession();
+        throw new ApiError('Your session has expired. Please sign in again.', 401);
+      }
+
+      throw error;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
+}
+
+export function configureApiAuth(handlers: ApiAuthHandlers): () => void {
+  authHandlers = handlers;
+
+  return () => {
+    if (authHandlers === handlers) {
+      authHandlers = null;
+    }
+  };
+}
+
+async function fetchJson<T>(
   path: string,
-  options: RequestInit & { token?: string } = {},
-): Promise<T> {
-  const { token, headers, ...requestOptions } = options;
+  options: ApiRequestOptions,
+  token?: string,
+): Promise<{ payload: T & ErrorPayload; status: number; ok: boolean }> {
+  const { token: _ignoredToken, headers, ...requestOptions } = options;
   const isMultipart =
     typeof FormData !== 'undefined' && requestOptions.body instanceof FormData;
 
@@ -77,23 +166,42 @@ export async function apiRequest<T>(
     );
   }
 
-  const payload = (await response.json().catch(() => ({}))) as T & ErrorPayload;
-
-  if (!response.ok) {
-    throw new ApiError(
-      firstValidationMessage(payload.errors) || payload.message || 'The request could not be completed.',
-      response.status,
-    );
-  }
-
-  return payload;
+  return {
+    payload: (await response.json().catch(() => ({}))) as T & ErrorPayload,
+    status: response.status,
+    ok: response.ok,
+  };
 }
 
-export async function apiUploadFile<T>(
+export async function apiRequest<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<T> {
+  const bearer = currentToken(options.token);
+  let response = await fetchJson<T>(path, options, bearer);
+
+  if (response.status === 401 && bearer && authHandlers) {
+    const refreshedToken = await refreshAccessToken();
+    response = await fetchJson<T>(path, options, refreshedToken);
+
+    if (response.status === 401) {
+      await expireSession();
+    }
+  }
+
+  if (!response.ok) {
+    throw responseError(response.payload, response.status, 'The request could not be completed.');
+  }
+
+  return response.payload;
+}
+
+async function uploadFile<T>(
   path: string,
   file: File,
   options: FileUploadOptions,
-): Promise<T> {
+  token?: string,
+): Promise<{ payload: T & ErrorPayload; status: number }> {
   let result;
 
   try {
@@ -106,7 +214,7 @@ export async function apiUploadFile<T>(
       sessionType: 'foreground',
       headers: {
         Accept: 'application/json',
-        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
   } catch (error) {
@@ -126,12 +234,29 @@ export async function apiUploadFile<T>(
     payload = {} as T & ErrorPayload;
   }
 
-  if (result.status < 200 || result.status >= 300) {
-    throw new ApiError(
-      firstValidationMessage(payload.errors) || payload.message || 'The upload could not be completed.',
-      result.status,
-    );
+  return { payload, status: result.status };
+}
+
+export async function apiUploadFile<T>(
+  path: string,
+  file: File,
+  options: FileUploadOptions,
+): Promise<T> {
+  const bearer = currentToken(options.token);
+  let result = await uploadFile<T>(path, file, options, bearer);
+
+  if (result.status === 401 && bearer && authHandlers) {
+    const refreshedToken = await refreshAccessToken();
+    result = await uploadFile<T>(path, file, options, refreshedToken);
+
+    if (result.status === 401) {
+      await expireSession();
+    }
   }
 
-  return payload;
+  if (result.status < 200 || result.status >= 300) {
+    throw responseError(result.payload, result.status, 'The upload could not be completed.');
+  }
+
+  return result.payload;
 }

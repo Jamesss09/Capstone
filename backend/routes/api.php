@@ -16,12 +16,14 @@ use Illuminate\Support\Facades\Route;
 // Public: staff & admin login
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
-// Public: exchange the httpOnly refresh cookie for a new access token. The
-// access token has expired by design, so this cannot sit behind auth:sanctum.
+// Public: exchange the browser's httpOnly cookie or a native refresh token for
+// a new access token. This cannot sit behind auth:sanctum because the access
+// token is expected to have expired.
 Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1');
+Route::post('/mobile/logout', [AuthController::class, 'mobileLogout'])->middleware('throttle:10,1');
 
 // Authenticated
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'access.token'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 

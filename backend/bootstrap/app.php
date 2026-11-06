@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureAccessToken;
+use App\Http\Middleware\EnsureRole;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -44,7 +46,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureRole::class,
+            'access.token' => EnsureAccessToken::class,
+            'role' => EnsureRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -62,6 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'errors' => $e->errors(),
                 ], 422);
             }
+
             return null; // fall through to default handling
         });
     })->create();

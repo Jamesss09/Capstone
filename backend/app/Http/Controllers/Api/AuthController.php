@@ -14,6 +14,8 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
+    private const ACCESS_TOKEN_NAME = 'access';
+
     /**
      * Name stamped on the long-lived refresh token. Checked on every exchange so
      * a short-lived access token can never be presented to /refresh and used to
@@ -21,7 +23,7 @@ class AuthController extends Controller
      */
     private const REFRESH_TOKEN_NAME = 'refresh';
 
-    /** httpOnly cookie holding the refresh token. */
+    /** httpOnly cookie holding the browser refresh token. */
     private const REFRESH_COOKIE = 'refresh_token';
 
     public function login(Request $request): JsonResponse
@@ -30,19 +32,20 @@ class AuthController extends Controller
             'login' => 'required|string',          // username or email
             'password' => 'required|string',
             'remember' => 'sometimes|boolean',     // persist the refresh cookie
+            'client' => 'sometimes|string|in:web,mobile',
         ]);
 
         $user = User::where('username', $data['login'])
             ->orWhere('email', $data['login'])
             ->first();
 
-        if (!$user || !Hash::check($data['password'], $user->password_hash)) {
+        if (! $user || ! Hash::check($data['password'], $user->password_hash)) {
             throw ValidationException::withMessages([
                 'login' => ['Invalid credentials.'],
             ]);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return response()->json(['message' => 'Account is deactivated.'], 403);
         }
 
@@ -54,35 +57,51 @@ class AuthController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        return $this->issueTokens($user, remember: (bool) ($data['remember'] ?? false));
+        return $this->issueTokens(
+            $user,
+            remember: (bool) ($data['remember'] ?? false),
+            mobile: ($data['client'] ?? 'web') === 'mobile',
+        );
     }
 
     /**
-     * Exchange the httpOnly refresh cookie for a new access token.
+     * Exchange the browser's httpOnly cookie or a native app refresh token for
+     * a new access token.
      *
      * Runs without auth:sanctum because the access token has expired by design.
-     * It is CSRF-safe because the cookie is SameSite=lax, so a cross-site POST
-     * never carries it.
+     * The browser flow is CSRF-safe because the cookie is SameSite=lax, so a
+     * cross-site POST never carries it. Native clients send the secret in the
+     * JSON body instead of relying on platform cookie persistence.
      */
     public function refresh(Request $request): JsonResponse
     {
-        $plain = $request->cookie(self::REFRESH_COOKIE);
+        $data = $request->validate([
+            'refresh_token' => 'sometimes|string',
+        ]);
+        $isMobile = isset($data['refresh_token']);
+        $plain = $isMobile ? $data['refresh_token'] : $request->cookie(self::REFRESH_COOKIE);
         $token = $plain ? PersonalAccessToken::findToken($plain) : null;
 
         $valid = $token instanceof PersonalAccessToken
             && $token->name === self::REFRESH_TOKEN_NAME
-            && !($token->expires_at && $token->expires_at->isPast());
+            && ! ($token->expires_at && $token->expires_at->isPast());
 
-        if (!$valid) {
-            $this->forgetRefreshCookie(); // stop resending a dead cookie
+        if (! $valid) {
+            if (! $isMobile) {
+                $this->forgetRefreshCookie(); // stop resending a dead cookie
+            }
+
             return response()->json(['message' => 'Invalid or expired refresh token.'], 401);
         }
 
         $user = $token->tokenable;
 
-        if (!$user || !$user->is_active) {
+        if (! $user || ! $user->is_active) {
             $token->delete();
-            $this->forgetRefreshCookie();
+            if (! $isMobile) {
+                $this->forgetRefreshCookie();
+            }
+
             return response()->json(['message' => 'Account is deactivated.'], 401);
         }
 
@@ -90,7 +109,45 @@ class AuthController extends Controller
         // single-use, and hand back a fresh access + refresh pair.
         $token->delete();
 
-        return $this->issueTokens($user, remember: true);
+        return $this->issueTokens($user, remember: true, mobile: $isMobile);
+    }
+
+    /** Revoke a native app session even when its short-lived access token expired. */
+    public function mobileLogout(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'refresh_token' => 'required|string',
+            'access_token' => 'sometimes|string',
+        ]);
+        $refreshToken = PersonalAccessToken::findToken($data['refresh_token']);
+        $user = $refreshToken instanceof PersonalAccessToken
+            && $refreshToken->name === self::REFRESH_TOKEN_NAME
+                ? $refreshToken->tokenable
+                : null;
+
+        if ($user instanceof User) {
+            $refreshToken->delete();
+
+            if (isset($data['access_token'])) {
+                $accessToken = PersonalAccessToken::findToken($data['access_token']);
+                if ($accessToken instanceof PersonalAccessToken
+                    && $accessToken->name === self::ACCESS_TOKEN_NAME
+                    && $accessToken->tokenable_type === User::class
+                    && $accessToken->tokenable_id === $user->id) {
+                    $accessToken->delete();
+                }
+            }
+
+            AuditLog::create([
+                'user_id' => $user->id,
+                'action' => 'LOGOUT',
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        // Always return the same response so this endpoint cannot be used to
+        // discover whether a captured token is valid.
+        return response()->json(['message' => 'Logged out.']);
     }
 
     public function logout(Request $request): JsonResponse
@@ -127,38 +184,49 @@ class AuthController extends Controller
     }
 
     /**
-     * Mint an access/refresh pair for $user and return the access token in the
-     * body (short-lived, held in memory) while the refresh token goes into an
-     * httpOnly cookie that page JavaScript can never read.
+     * Mint an access/refresh pair for $user. Browsers receive the refresh token
+     * in an httpOnly cookie; native clients receive it in the response body for
+     * storage in the operating system's secure credential store.
      */
-    private function issueTokens(User $user, bool $remember): JsonResponse
+    private function issueTokens(User $user, bool $remember, bool $mobile = false): JsonResponse
     {
         $access = $user->createToken(
-            'access',
-            ['*'],
+            self::ACCESS_TOKEN_NAME,
+            [self::ACCESS_TOKEN_NAME],
             now()->addMinutes(config('auth.access_token_ttl_minutes'))
         );
+
+        $refreshExpiresAt = now()->addDays(config('auth.refresh_token_ttl_days'));
 
         $refresh = $user->createToken(
             self::REFRESH_TOKEN_NAME,
             [self::REFRESH_TOKEN_NAME],
-            now()->addDays(config('auth.refresh_token_ttl_days'))
+            $refreshExpiresAt,
         );
 
-        $this->queueRefreshCookie($refresh->plainTextToken, $remember);
+        if (! $mobile) {
+            $this->queueRefreshCookie($refresh->plainTextToken, $remember);
+        }
 
-        return response()->json([
+        $payload = [
             'token' => $access->plainTextToken,
             'expires_at' => $access->accessToken->expires_at?->toIso8601String(),
             'user' => $this->safeUser($user),
-        ]);
+        ];
+
+        if ($mobile) {
+            $payload['refresh_token'] = $refresh->plainTextToken;
+            $payload['refresh_expires_at'] = $refreshExpiresAt->toIso8601String();
+        }
+
+        return response()->json($payload);
     }
 
     /**
-     * @param bool $remember when true the cookie persists for the configured TTL
-     *                       (survives a browser restart); otherwise it is a
-     *                       session cookie that dies with the browser, so the
-     *                       next visit starts at the login screen.
+     * @param  bool  $remember  when true the cookie persists for the configured TTL
+     *                          (survives a browser restart); otherwise it is a
+     *                          session cookie that dies with the browser, so the
+     *                          next visit starts at the login screen.
      */
     private function queueRefreshCookie(string $plainTextToken, bool $remember): void
     {
@@ -167,7 +235,7 @@ class AuthController extends Controller
         Cookie::queue(Cookie::make(
             self::REFRESH_COOKIE,
             $plainTextToken,
-            $remember ? $minutes : 0, // 0 => session cookie for remember me
+            $remember ? $minutes : 0, // 0 => session cookie when not remembered
             '/api',                   // scope to the API paths only (leading / per RFC 6265)
             null,                     // host-only: no cross-subdomain leak
             config('session.secure'), // Secure in production (HTTPS)
