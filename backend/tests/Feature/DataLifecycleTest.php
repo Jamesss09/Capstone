@@ -189,11 +189,9 @@ class DataLifecycleTest extends TestCase
 
         $expiredApplicant = $this->omrApplicant($staff, $key);
         Storage::disk('local')->put('answer_sheets/expired.jpg', 'expired-image');
-        Storage::disk('local')->put('answer_sheets/annotated/1.jpg', 'expired-annotation');
         $expiredSheet = AnswerSheet::create([
             'applicant_id' => $expiredApplicant->id,
             'image_path' => 'answer_sheets/expired.jpg',
-            'annotated_image_path' => 'answer_sheets/annotated/1.jpg',
             'storage_disk' => 'local',
             'image_hash' => hash('sha256', 'expired-image'),
             'processed_at' => now()->subDays(366),
@@ -234,12 +232,10 @@ class DataLifecycleTest extends TestCase
         $this->artisan('answer-sheets:prune-images')->assertSuccessful();
 
         Storage::disk('local')->assertMissing('answer_sheets/expired.jpg');
-        Storage::disk('local')->assertMissing('answer_sheets/annotated/1.jpg');
         Storage::disk('local')->assertExists('answer_sheets/recent.jpg');
         Storage::disk('local')->assertExists('answer_sheets/pending.jpg');
         $expiredSheet->refresh();
         $this->assertNull($expiredSheet->image_path);
-        $this->assertNull($expiredSheet->annotated_image_path);
         $this->assertNull($expiredSheet->image_hash);
         $this->assertNotNull($expiredSheet->image_deleted_at);
         $this->assertSame(['warnings' => [], 'capture_quality' => ['focus_score' => 900]], $expiredSheet->recognition_metadata);

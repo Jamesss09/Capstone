@@ -8,16 +8,12 @@ use App\Models\AuditLog;
 use App\Models\ExaminationApplicant;
 use App\Models\ExaminationResult;
 use App\Models\OmrProcessingJob;
-use App\Services\AnswerSheetImageStorage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class OmrResultPersister
 {
-    public function __construct(
-        private readonly AnswerKeyPayloadFactory $payloadFactory,
-        private readonly AnswerSheetImageStorage $imageStorage,
-    ) {}
+    public function __construct(private readonly AnswerKeyPayloadFactory $payloadFactory) {}
 
     /**
      * Validate the complete OMR response, independently verify its score, and
@@ -66,22 +62,7 @@ class OmrResultPersister
                 ]
             );
 
-            $annotatedImagePath = $sheet->annotated_image_path;
-            if ($normalized['annotated_image_contents'] !== null) {
-                // The annotated image is supplementary. A storage failure must
-                // not discard a valid, independently verified OMR result.
-                try {
-                    $annotatedImagePath = $this->imageStorage->storeAnnotated(
-                        $sheet,
-                        $normalized['annotated_image_contents'],
-                    );
-                } catch (\Throwable) {
-                    $annotatedImagePath = null;
-                }
-            }
-
             $sheet->update([
-                'annotated_image_path' => $annotatedImagePath,
                 'processed_at' => now(),
                 'recognition_metadata' => $normalized['metadata'],
             ]);
@@ -106,7 +87,7 @@ class OmrResultPersister
 
     /**
      * @param  array<string, mixed>  $response
-     * @return array{answers: array<int, array<string, mixed>>, result: array<string, mixed>, metadata: array<string, mixed>, annotated_image_contents: string|null}
+     * @return array{answers: array<int, array<string, mixed>>, result: array<string, mixed>, metadata: array<string, mixed>}
      */
     private function normalize(OmrProcessingJob $job, array $response): array
     {
@@ -272,26 +253,7 @@ class OmrResultPersister
                 'passing_score' => $passingScore,
             ],
             'metadata' => $metadata,
-            'annotated_image_contents' => $this->extractAnnotatedImage($response['annotated_image'] ?? null),
         ];
-    }
-
-    private function extractAnnotatedImage(mixed $payload): ?string
-    {
-        if (! is_array($payload) || ($payload['format'] ?? null) !== 'jpeg' || ! is_string($payload['data'] ?? null)) {
-            return null;
-        }
-
-        $contents = base64_decode($payload['data'], true);
-        if ($contents === false || $contents === '' || strlen($contents) > 8 * 1024 * 1024) {
-            return null;
-        }
-
-        $imageInfo = @getimagesizefromstring($contents);
-
-        return is_array($imageInfo) && ($imageInfo['mime'] ?? null) === 'image/jpeg'
-            ? $contents
-            : null;
     }
 
     /**

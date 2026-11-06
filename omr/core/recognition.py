@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import base64
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Sequence
@@ -37,8 +36,6 @@ DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.80
 DEFAULT_ERASURE_THRESHOLD = 0.80
 REQUIRED_CLASSES = ("shaded", "empty", "erasure_smudge")
 CAPTURE_QUALITY_LONG_SIDE = 1200
-ANNOTATION_LONG_SIDE = 1800
-ANNOTATION_JPEG_QUALITY = 84
 MIN_BRIGHT_PIXEL_PERCENTILE = 120.0
 MIN_FOCUS_SCORE = 100.0
 MIN_LATTICE_ROW_COVERAGE = 0.80
@@ -205,127 +202,6 @@ def summarize_items(items: Sequence[dict[str, Any]]) -> dict[str, int]:
         "multi_shade": sum("multi_shade" in item["flags"] for item in items),
         "erasure": sum("erasure" in item["flags"] for item in items),
         "low_confidence": sum("low_confidence" in item["flags"] for item in items),
-    }
-
-
-def encode_result_overlay(
-    warped: np.ndarray,
-    predictions: Sequence[BubblePrediction],
-    items: Sequence[dict[str, Any]],
-    scoring_items: Sequence[dict[str, Any]],
-    answer_key: dict[str, Any],
-) -> dict[str, Any]:
-    """Render a compact, status-aware overlay for staff review.
-
-    The overlay is drawn in the registered template frame. This keeps every
-    marker aligned with the same calibrated bubble centers used for scoring.
-    The original upload remains untouched and is stored separately by Laravel.
-    """
-    if not isinstance(warped, np.ndarray) or warped.size == 0:
-        raise RecognitionError("cannot render an overlay without a registered sheet")
-
-    canvas = warped.copy()
-    item_by_key = {
-        (item["section"], item["item_number"]): item
-        for item in items
-    }
-    scoring_by_key = {
-        (item["section"], item["item_number"]): item
-        for item in scoring_items
-    }
-    key_by_item = {
-        (item["section"], item["item_number"]): item["correct_answer"]
-        for item in answer_key["items"]
-    }
-    predictions_by_item: dict[tuple[str, int], list[BubblePrediction]] = {}
-    for prediction in predictions:
-        item_key = (prediction.crop.section, prediction.crop.item_number)
-        predictions_by_item.setdefault(item_key, []).append(prediction)
-
-    colors = {
-        "correct": (45, 175, 75),       # BGR: green
-        "wrong": (60, 70, 220),         # BGR: red
-        "blank": (145, 145, 145),       # BGR: gray
-        "multi_shade": (0, 165, 255),   # BGR: orange
-        "erasure": (190, 80, 190),      # BGR: purple
-    }
-
-    def draw_marker(
-        prediction: BubblePrediction,
-        color: tuple[int, int, int],
-        thickness: int = 5,
-    ) -> None:
-        center = (
-            int(round(prediction.crop.center_x)),
-            int(round(prediction.crop.center_y)),
-        )
-        cv2.circle(canvas, center, 27, color, thickness, lineType=cv2.LINE_AA)
-
-    for item_key, item in item_by_key.items():
-        item_predictions = predictions_by_item.get(item_key, [])
-        scoring = scoring_by_key.get(item_key, {})
-        status = item.get("status")
-        flags = item.get("flags", [])
-
-        if "erasure" in flags:
-            for prediction in item_predictions:
-                if prediction.class_name == "erasure_smudge":
-                    draw_marker(prediction, colors["erasure"])
-            continue
-
-        if "multi_shade" in flags:
-            for prediction in item_predictions:
-                if prediction.class_name == "shaded":
-                    draw_marker(prediction, colors["multi_shade"])
-            continue
-
-        if status == "blank":
-            for prediction in item_predictions:
-                draw_marker(prediction, colors["blank"], thickness=3)
-            continue
-
-        marked_answer = item.get("marked_answer")
-        correct_answer = key_by_item.get(item_key)
-        selected = next(
-            (prediction for prediction in item_predictions if prediction.crop.letter == marked_answer),
-            None,
-        )
-        if selected is not None:
-            draw_marker(
-                selected,
-                colors["correct"] if scoring.get("is_correct") else colors["wrong"],
-            )
-
-        if scoring.get("is_correct") is False and correct_answer:
-            expected = next(
-                (prediction for prediction in item_predictions if prediction.crop.letter == correct_answer),
-                None,
-            )
-            if expected is not None:
-                draw_marker(expected, colors["correct"], thickness=3)
-
-    height, width = canvas.shape[:2]
-    scale = min(1.0, ANNOTATION_LONG_SIDE / max(width, height))
-    if scale < 1.0:
-        canvas = cv2.resize(
-            canvas,
-            (max(1, round(width * scale)), max(1, round(height * scale))),
-            interpolation=cv2.INTER_AREA,
-        )
-
-    encoded_ok, encoded = cv2.imencode(
-        ".jpg",
-        canvas,
-        [int(cv2.IMWRITE_JPEG_QUALITY), ANNOTATION_JPEG_QUALITY],
-    )
-    if not encoded_ok:
-        raise RecognitionError("could not encode the annotated answer sheet")
-
-    return {
-        "format": "jpeg",
-        "width": int(canvas.shape[1]),
-        "height": int(canvas.shape[0]),
-        "data": base64.b64encode(encoded.tobytes()).decode("ascii"),
     }
 
 
@@ -524,11 +400,10 @@ class RecognitionService:
             raise ValueError("erasure_threshold must be between 0 and 1")
         if not isinstance(image, np.ndarray) or image.size == 0:
             raise RecognitionError("uploaded image is empty")
-        normalized_answer_key = None
         if answer_key is not None:
             # Reject malformed, incomplete, inactive, or out-of-range keys
             # before spending several seconds on registration and inference.
-            normalized_answer_key = normalize_answer_key(answer_key)
+            normalize_answer_key(answer_key)
 
         capture_quality = analyze_capture_quality(image)
         validate_capture_image_quality(capture_quality)
@@ -585,15 +460,7 @@ class RecognitionService:
             "items": items,
         }
         if answer_key is not None:
-            scoring = score_items(items, answer_key)
-            report["scoring"] = scoring
-            report["annotated_image"] = encode_result_overlay(
-                warped,
-                predictions,
-                items,
-                scoring["items"],
-                normalized_answer_key,
-            )
+            report["scoring"] = score_items(items, answer_key)
         completed_at = perf_counter()
         report["timing_ms"] = {
             "registration": round((registered_at - started) * 1000, 2),

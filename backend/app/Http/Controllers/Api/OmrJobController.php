@@ -240,31 +240,6 @@ class OmrJobController extends Controller
             'job' => $job,
             'result' => $job->sheet->applicant->result,
             'applicant' => $job->sheet->applicant,
-            'annotated_image_available' => filled($job->sheet->annotated_image_path),
         ]);
-    }
-
-    public function annotatedImage(Request $request, OmrProcessingJob $job)
-    {
-        if ($request->user()->role !== 'Administrator' && $job->user_id !== $request->user()->id) {
-            abort(403, 'You may only view OMR jobs that you submitted.');
-        }
-
-        $sheet = $job->sheet;
-        $path = trim((string) $sheet?->annotated_image_path);
-        $disk = Storage::disk($sheet?->storage_disk ?: 'public');
-
-        if ($path === '' || ! $disk->exists($path)) {
-            abort(404, 'The annotated answer-sheet image is unavailable.');
-        }
-
-        return $disk->response(
-            $path,
-            "answer-sheet-{$sheet->id}-annotated.jpg",
-            [
-                'Cache-Control' => 'private, max-age=300',
-                'X-Content-Type-Options' => 'nosniff',
-            ],
-        );
     }
 }

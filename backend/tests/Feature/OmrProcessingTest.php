@@ -263,16 +263,8 @@ class OmrProcessingTest extends TestCase
             'status' => 'Queued',
             'queue_position' => 1,
         ]);
-        $annotatedImage = UploadedFile::fake()->image('annotated.jpg', 40, 40);
-        $omrResponse = $this->successfulOmrResponse($key);
-        $omrResponse['annotated_image'] = [
-            'format' => 'jpeg',
-            'width' => 40,
-            'height' => 40,
-            'data' => base64_encode($annotatedImage->getContent()),
-        ];
         Http::fake([
-            '*/recognize' => Http::response($omrResponse),
+            '*/recognize' => Http::response($this->successfulOmrResponse($key)),
         ]);
 
         $this->app->call([new ProcessOmrSheet($processingJob->id), 'handle']);
@@ -315,9 +307,6 @@ class OmrProcessingTest extends TestCase
         $this->assertSame('tmc-bubble-cnn-three-class-v1', $sheet->fresh()->recognition_metadata['model']['model_id']);
         $this->assertSame(195, $sheet->fresh()->recognition_metadata['capture_quality']['bright_pixel_percentile']);
         $this->assertSame(900, $sheet->fresh()->recognition_metadata['capture_quality']['focus_score']);
-        $annotatedPath = $sheet->fresh()->annotated_image_path;
-        $this->assertNotNull($annotatedPath);
-        Storage::disk('public')->assertExists($annotatedPath);
 
         Sanctum::actingAs($staff);
         $this->getJson("/api/omr-jobs/{$processingJob->id}")
@@ -326,11 +315,7 @@ class OmrProcessingTest extends TestCase
             ->assertJsonPath('result.score', '98.02')
             ->assertJsonPath('result.blank_count', 1)
             ->assertJsonPath('result.invalid_count', 1)
-            ->assertJsonPath('result.answer_key.exam_title', 'TMC Entrance Examination')
-            ->assertJsonPath('annotated_image_available', true);
-
-        $this->get("/api/omr-jobs/{$processingJob->id}/annotated-image")
-            ->assertOk();
+            ->assertJsonPath('result.answer_key.exam_title', 'TMC Entrance Examination');
 
         Http::assertSent(function (Request $request) use ($key, $processingJob) {
             $answerKeyPart = collect($request->data())->firstWhere('name', 'answer_key');
@@ -483,7 +468,6 @@ class OmrProcessingTest extends TestCase
 
     public function test_staff_can_only_poll_their_own_jobs_while_admin_can_poll_any_job(): void
     {
-        Storage::fake('public');
         $owner = $this->omrUser();
         $otherStaff = $this->omrUser();
         $admin = $this->omrUser('Administrator');
@@ -492,10 +476,8 @@ class OmrProcessingTest extends TestCase
         $sheet = AnswerSheet::create([
             'applicant_id' => $applicant->id,
             'image_path' => 'answer_sheets/sheet.jpg',
-            'annotated_image_path' => 'answer_sheets/annotated/sheet.jpg',
             'storage_disk' => 'public',
         ]);
-        Storage::disk('public')->put('answer_sheets/annotated/sheet.jpg', 'annotated-image');
         $processingJob = OmrProcessingJob::create([
             'sheet_id' => $sheet->id,
             'user_id' => $owner->id,
@@ -505,18 +487,15 @@ class OmrProcessingTest extends TestCase
 
         Sanctum::actingAs($otherStaff);
         $this->getJson("/api/omr-jobs/{$processingJob->id}")->assertForbidden();
-        $this->get("/api/omr-jobs/{$processingJob->id}/annotated-image")->assertForbidden();
 
         Sanctum::actingAs($owner);
         $this->getJson("/api/omr-jobs/{$processingJob->id}")
             ->assertOk()
             ->assertJsonPath('job.status', 'Queued');
-        $this->get("/api/omr-jobs/{$processingJob->id}/annotated-image")->assertOk();
 
         Sanctum::actingAs($admin);
         $this->getJson("/api/omr-jobs/{$processingJob->id}")
             ->assertOk()
             ->assertJsonPath('job.id', $processingJob->id);
-        $this->get("/api/omr-jobs/{$processingJob->id}/annotated-image")->assertOk();
     }
 }

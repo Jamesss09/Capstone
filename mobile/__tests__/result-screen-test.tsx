@@ -120,25 +120,6 @@ describe('<ResultScreen />', () => {
     });
   });
 
-  test('opens the annotated scanned-sheet viewer and displays its legend', async () => {
-    await render(<ResultScreen />);
-
-    await screen.findByText('Examination Result');
-    await fireEvent.press(screen.getByRole('button', { name: 'View Scanned Sheet' }));
-
-    expect(screen.getByText('Scanned Sheet')).toBeTruthy();
-    expect(screen.getByText('Annotated OMR review')).toBeTruthy();
-    expect(screen.getByText('LEGEND')).toBeTruthy();
-    expect(screen.getByText('Correct answer')).toBeTruthy();
-    expect(screen.getByText('Wrong answer')).toBeTruthy();
-    expect(screen.getByText('Blank')).toBeTruthy();
-    expect(screen.getByText('Multi-shade')).toBeTruthy();
-    expect(screen.getByText('Erasure')).toBeTruthy();
-
-    await fireEvent.press(screen.getByRole('button', { name: 'Close scanned sheet viewer' }));
-    expect(screen.queryByText('Annotated OMR review')).toBeNull();
-  });
-
   test('files the result into the selected active folder and confirms the save', async () => {
     await render(<ResultScreen />);
 
