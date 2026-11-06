@@ -93,6 +93,12 @@ function describeAction(log) {
     case 'UPDATE_USER':
       text = `updated user account${ref}`
       break
+    case 'DEACTIVATE_USER':
+      text = `deactivated user account${ref}`
+      break
+    case 'REACTIVATE_USER':
+      text = `reactivated user account${ref}`
+      break
     case 'DELETE_USER':
       text = `deleted user account${ref}`
       break

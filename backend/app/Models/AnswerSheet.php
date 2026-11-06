@@ -16,6 +16,7 @@ class AnswerSheet extends Model
         'storage_disk',
         'image_hash',
         'processed_at',
+        'image_deleted_at',
         'recognition_metadata',
     ];
 
@@ -23,6 +24,7 @@ class AnswerSheet extends Model
     {
         return [
             'processed_at' => 'datetime',
+            'image_deleted_at' => 'datetime',
             'recognition_metadata' => 'array',
         ];
     }

@@ -16,6 +16,10 @@ class OmrClient
      */
     public function recognize(AnswerSheet $sheet, array $answerKey, int $processingJobId): array
     {
+        if (blank($sheet->image_path)) {
+            throw new OmrRejectedException('The uploaded answer-sheet image is no longer available.');
+        }
+
         $disk = Storage::disk($sheet->storage_disk ?: 'public');
         if (! $disk->exists($sheet->image_path)) {
             throw new OmrRejectedException('The uploaded answer-sheet image is no longer available.');

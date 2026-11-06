@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -69,17 +70,64 @@ class UserController extends Controller
             unset($data['password']);
         }
 
-        $user->update($data);
+        $willDeactivate = array_key_exists('is_active', $data)
+            && $user->is_active
+            && ! $data['is_active'];
+        $willRemoveAdministratorRole = array_key_exists('role', $data)
+            && $user->role === 'Administrator'
+            && $data['role'] !== 'Administrator';
 
-        AuditLog::create([
-            'user_id' => $request->user()->id,
-            'action' => 'UPDATE_USER',
-            'table_name' => 'tbl_users',
-            'record_id' => $user->id,
-            'ip_address' => $request->ip(),
-        ]);
+        if ($user->id === $request->user()->id && ($willDeactivate || $willRemoveAdministratorRole)) {
+            return response()->json([
+                'message' => 'You cannot deactivate or remove the administrator role from your own account.',
+            ], 422);
+        }
 
-        return response()->json($user);
+        if ($user->is_active
+            && $user->role === 'Administrator'
+            && ($willDeactivate || $willRemoveAdministratorRole)
+            && ! User::query()
+                ->whereKeyNot($user->id)
+                ->where('role', 'Administrator')
+                ->where('is_active', true)
+                ->exists()) {
+            return response()->json([
+                'message' => 'At least one active administrator account must remain.',
+            ], 422);
+        }
+
+        $credentialsOrAccessChanged = isset($data['password_hash'])
+            || (isset($data['role']) && $data['role'] !== $user->role)
+            || (array_key_exists('is_active', $data) && $data['is_active'] !== $user->is_active);
+        $wasActive = $user->is_active;
+
+        DB::transaction(function () use (
+            $credentialsOrAccessChanged,
+            $data,
+            $request,
+            $user,
+            $wasActive,
+        ): void {
+            $user->update($data);
+
+            if ($credentialsOrAccessChanged) {
+                $user->tokens()->delete();
+            }
+
+            $action = $wasActive && ! $user->is_active
+                ? 'DEACTIVATE_USER'
+                : (! $wasActive && $user->is_active ? 'REACTIVATE_USER' : 'UPDATE_USER');
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => $action,
+                'table_name' => 'tbl_users',
+                'record_id' => $user->id,
+                'ip_address' => $request->ip(),
+            ]);
+        });
+
+        return response()->json($user->fresh());
     }
 
     public function destroy(Request $request, User $user): JsonResponse
@@ -88,16 +136,32 @@ class UserController extends Controller
             return response()->json(['message' => 'You cannot delete your own account.'], 422);
         }
 
-        AuditLog::create([
-            'user_id' => $request->user()->id,
-            'action' => 'DELETE_USER',
-            'table_name' => 'tbl_users',
-            'record_id' => $user->id,
-            'ip_address' => $request->ip(),
-        ]);
+        if ($user->is_active
+            && $user->role === 'Administrator'
+            && ! User::query()
+                ->whereKeyNot($user->id)
+                ->where('role', 'Administrator')
+                ->where('is_active', true)
+                ->exists()) {
+            return response()->json([
+                'message' => 'At least one active administrator account must remain.',
+            ], 422);
+        }
 
-        $user->delete();
+        DB::transaction(function () use ($request, $user): void {
+            $user->tokens()->delete();
 
-        return response()->json(['message' => 'User deleted.']);
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'DELETE_USER',
+                'table_name' => 'tbl_users',
+                'record_id' => $user->id,
+                'ip_address' => $request->ip(),
+            ]);
+
+            $user->delete();
+        });
+
+        return response()->json(['message' => 'User deleted. Historical examination records were preserved.']);
     }
 }

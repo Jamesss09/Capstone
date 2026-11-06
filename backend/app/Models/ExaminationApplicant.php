@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ExaminationApplicant extends Model
@@ -56,6 +57,11 @@ class ExaminationApplicant extends Model
     public function answerSheet(): HasOne
     {
         return $this->hasOne(AnswerSheet::class, 'applicant_id');
+    }
+
+    public function answerSheets(): HasMany
+    {
+        return $this->hasMany(AnswerSheet::class, 'applicant_id');
     }
 
     public function result(): HasOne

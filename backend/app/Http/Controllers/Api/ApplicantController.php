@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\ExaminationApplicant;
 use App\Models\ExaminationFolder;
+use App\Services\AnswerSheetImageStorage;
 use App\Services\Omr\ActiveAnswerKeyResolver;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class ApplicantController extends Controller
 {
-    public function __construct(private readonly ActiveAnswerKeyResolver $activeAnswerKeyResolver) {}
+    public function __construct(
+        private readonly ActiveAnswerKeyResolver $activeAnswerKeyResolver,
+        private readonly AnswerSheetImageStorage $imageStorage,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -110,9 +115,27 @@ class ApplicantController extends Controller
         return response()->json($applicant->fresh()->load('folder', 'answerKey'));
     }
 
-    public function destroy(ExaminationApplicant $applicant): JsonResponse
+    public function destroy(Request $request, ExaminationApplicant $applicant): JsonResponse
     {
-        $applicant->delete();
+        $sheets = $applicant->answerSheets()->get();
+        foreach ($sheets as $sheet) {
+            if (! $this->imageStorage->delete($sheet)) {
+                return response()->json([
+                    'message' => 'The applicant was not deleted because an answer-sheet image could not be removed.',
+                ], 500);
+            }
+        }
+
+        DB::transaction(function () use ($applicant, $request): void {
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'DELETE_APPLICANT',
+                'table_name' => 'tbl_examination_applicants',
+                'record_id' => $applicant->id,
+                'ip_address' => $request->ip(),
+            ]);
+            $applicant->delete();
+        });
 
         return response()->json(['message' => 'Applicant deleted.']);
     }

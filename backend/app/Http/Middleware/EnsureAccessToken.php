@@ -12,7 +12,14 @@ class EnsureAccessToken
     /** Prevent a long-lived refresh credential from authorizing API actions. */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->user()?->currentAccessToken();
+        $user = $request->user();
+        if (! $user?->is_active) {
+            $user?->tokens()->delete();
+
+            return response()->json(['message' => 'Account is deactivated.'], 401);
+        }
+
+        $token = $user->currentAccessToken();
 
         // Persisted bearer tokens must be the short-lived access kind. Sanctum
         // may instead provide a TransientToken for first-party cookie auth.

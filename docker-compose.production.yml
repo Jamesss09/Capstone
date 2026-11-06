@@ -65,6 +65,7 @@ services:
       OMR_SERVICE_URL: http://omr:5005
       OMR_CONNECT_TIMEOUT: 5
       OMR_REQUEST_TIMEOUT: 180
+      ANSWER_SHEET_RETENTION_DAYS: ${ANSWER_SHEET_RETENTION_DAYS:-365}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD}
       INITIAL_STAFF_PASSWORD: ${INITIAL_STAFF_PASSWORD:?Set INITIAL_STAFF_PASSWORD}
     volumes:
@@ -89,6 +90,17 @@ services:
     volumes:
       - answer_sheet_data:/var/www/html/storage/app/private
     command: ["php", "artisan", "queue:work", "database", "--queue=omr", "--sleep=1", "--tries=3", "--timeout=210", "--max-time=3600"]
+
+  scheduler:
+    image: code-nexus-backend:production
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment: *backend-environment
+    volumes:
+      - answer_sheet_data:/var/www/html/storage/app/private
+    command: ["php", "artisan", "schedule:work"]
 
 volumes:
   mysql_data:

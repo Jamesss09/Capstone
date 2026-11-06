@@ -36,6 +36,9 @@ replace `*` with the proxy IP or CIDR list before exposing it.
 6. Change the seeded user passwords after the first successful login. Re-running
    the seeder does not reset existing passwords.
 
+The production Compose stack includes a Laravel scheduler service. Keep it
+running so retention cleanup and future scheduled maintenance execute.
+
 ## Web and Android configuration
 
 Build the web administrator with the permanent API address:
@@ -89,6 +92,23 @@ continue blocking release on any high or critical runtime advisory.
 
 Backups include MySQL data, answer metadata/results, audit records, and private
 answer-sheet images. Each set includes SHA-256 checksums.
+
+## Account and answer-sheet retention policy
+
+- Administrators may deactivate accounts temporarily or permanently delete
+  another user, but cannot delete their own account. Both actions revoke access
+  and refresh tokens. Deactivation retains the user identity; deletion keeps
+  all examination and audit records while their user references become null.
+- Successfully processed answer-sheet source images are retained in active
+  storage for 365 days by default. Pending and failed scans are excluded.
+- Daily at 02:00, `answer-sheets:prune-images` deletes eligible source images
+  and their hashes. Applicant records, all persisted answers, scores,
+  confidence values, recognition diagnostics, and audit records remain.
+- Configure the review window with `ANSWER_SHEET_RETENTION_DAYS`. Preview a
+  cleanup safely with `php artisan answer-sheets:prune-images --dry-run`.
+- Encrypted backups age out under the backup schedule above and are not edited
+  in place. After a restore, run the cleanup command before reopening the
+  system so images beyond the active retention window are removed again.
 
 ## Recovery procedure
 

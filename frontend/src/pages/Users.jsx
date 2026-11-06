@@ -291,6 +291,9 @@ function UserModal({ mode, user, token, onClose, onSaved }) {
                 </button>
               ))}
             </div>
+            <p className="mt-2 text-[11px] text-[var(--muted)]">
+              Inactive accounts are signed out immediately. Their historical records remain available.
+            </p>
           </div>
         </div>
 
@@ -335,9 +338,9 @@ function DeleteConfirm({ user, busy, onCancel, onConfirm }) {
           </div>
           <h2 className="text-base font-bold text-[var(--ink)]">Delete user?</h2>
         </div>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          “{user.full_name}” ({user.username}) will lose access immediately and cannot sign in.
-          This cannot be undone.
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          “{user.full_name}” ({user.username}) will lose access immediately. Their account cannot be
+          restored, but historical examination records will remain available.
         </p>
         <div className="mt-5 flex gap-3">
           <button
@@ -372,7 +375,7 @@ export default function Users() {
   const [error, setError] = useState('')
   const [modal, setModal] = useState(null) // { mode: 'new' } | { mode: 'edit', user }
   const [confirmDelete, setConfirmDelete] = useState(null)
-  const [busyId, setBusyId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   async function load() {
     try {
@@ -393,7 +396,9 @@ export default function Users() {
 
   async function handleDelete() {
     if (!confirmDelete) return
-    setBusyId('delete')
+
+    setDeleting(true)
+    setError('')
     try {
       await api(`/users/${confirmDelete.id}`, { method: 'DELETE', token })
       setConfirmDelete(null)
@@ -401,7 +406,7 @@ export default function Users() {
     } catch (e) {
       setError(e.message)
     } finally {
-      setBusyId(null)
+      setDeleting(false)
     }
   }
 
@@ -499,11 +504,7 @@ export default function Users() {
                         <button
                           onClick={() => setConfirmDelete(u)}
                           disabled={self}
-                          title={
-                            self
-                              ? 'You cannot delete your own account.'
-                              : 'Delete this user permanently'
-                          }
+                          title={self ? 'You cannot delete your own account.' : 'Delete this user permanently'}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Trash2 size={13} />
@@ -533,11 +534,10 @@ export default function Users() {
         />
       )}
 
-      {/* Delete confirm */}
       {confirmDelete && (
         <DeleteConfirm
           user={confirmDelete}
-          busy={busyId === 'delete'}
+          busy={deleting}
           onCancel={() => setConfirmDelete(null)}
           onConfirm={handleDelete}
         />
