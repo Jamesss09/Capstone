@@ -2,7 +2,13 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { type File } from 'expo-file-system';
 import { waitFor } from '@testing-library/react-native';
 
-import { ApiError, apiRequest, apiUploadFile, configureApiAuth } from '@/lib/api';
+import {
+  ApiError,
+  apiDownloadBytes,
+  apiRequest,
+  apiUploadFile,
+  configureApiAuth,
+} from '@/lib/api';
 
 jest.mock('expo/fetch', () => ({
   fetch: jest.fn(),
@@ -13,6 +19,15 @@ function jsonResponse(status: number, body: unknown) {
     ok: status >= 200 && status < 300,
     status,
     json: jest.fn().mockResolvedValue(body),
+  } as unknown as Awaited<ReturnType<typeof expoFetch>>;
+}
+
+function bytesResponse(status: number, body: Uint8Array | unknown) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    bytes: jest.fn().mockResolvedValue(body instanceof Uint8Array ? body : new Uint8Array()),
+    json: jest.fn().mockResolvedValue(body instanceof Uint8Array ? {} : body),
   } as unknown as Awaited<ReturnType<typeof expoFetch>>;
 }
 
@@ -143,6 +158,29 @@ describe('mobile API session handling', () => {
       expect.objectContaining({ name: 'answer-sheet.jpg', type: 'image/jpeg', size: 11 }),
     );
     expect(secondRequest?.headers).toEqual(
+      expect.objectContaining({ Authorization: 'Bearer fresh-token' }),
+    );
+  });
+
+  test('refreshes an expired token before downloading a protected image', async () => {
+    const refreshAccessToken = jest.fn().mockResolvedValue('fresh-token');
+    cleanupAuth = configureApiAuth({
+      getAccessToken: () => 'expired-token',
+      refreshAccessToken,
+      onSessionExpired: jest.fn(),
+    });
+    const imageBytes = new Uint8Array([255, 216, 255, 217]);
+    jest.mocked(expoFetch)
+      .mockResolvedValueOnce(bytesResponse(401, { message: 'Unauthenticated.' }))
+      .mockResolvedValueOnce(bytesResponse(200, imageBytes));
+
+    await expect(
+      apiDownloadBytes('/omr-jobs/28/annotated-image', 'expired-token'),
+    ).resolves.toEqual(imageBytes);
+
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1);
+    expect(expoFetch).toHaveBeenCalledTimes(2);
+    expect(jest.mocked(expoFetch).mock.calls[1]?.[1]?.headers).toEqual(
       expect.objectContaining({ Authorization: 'Bearer fresh-token' }),
     );
   });
