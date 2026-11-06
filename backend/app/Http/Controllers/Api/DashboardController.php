@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnswerKey;
+use App\Models\AuditLog;
 use App\Models\ExaminationApplicant;
 use App\Models\ExaminationFolder;
-use App\Models\AnswerKey;
 use App\Models\ExaminationResult;
-use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

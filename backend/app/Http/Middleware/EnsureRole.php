@@ -16,7 +16,7 @@ class EnsureRole
     {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, $roles, true)) {
+        if (! $user || ! in_array($user->role, $roles, true)) {
             return response()->json(['message' => 'Forbidden: insufficient role.'], 403);
         }
 

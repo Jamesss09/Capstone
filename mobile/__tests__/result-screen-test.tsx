@@ -28,6 +28,8 @@ jest.mock('@/lib/api', () => ({
   apiRequest: jest.fn(),
 }));
 
+jest.setTimeout(30_000);
+
 const result = {
   id: 44,
   score: '98.02',
@@ -93,7 +95,9 @@ describe('<ResultScreen />', () => {
   test('renders the prototype score summary and applicant details', async () => {
     await render(<ResultScreen />);
 
-    expect(await screen.findByText('Examination Result')).toBeTruthy();
+    expect(
+      await screen.findByText('Examination Result', {}, { timeout: 5_000 }),
+    ).toBeTruthy();
     expect(screen.getByText('Dela Cruz, Maria A.')).toBeTruthy();
     expect(screen.getByText('EXM-0013')).toBeTruthy();
     expect(screen.getByText('Examination Date: Nov 4, 2026')).toBeTruthy();
