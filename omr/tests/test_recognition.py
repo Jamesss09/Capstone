@@ -1,5 +1,7 @@
+import base64
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pytest
 
@@ -11,6 +13,7 @@ from core.recognition import (
     analyze_capture_quality,
     capture_quality_warnings,
     decide_items,
+    encode_result_overlay,
     select_bubble_class,
     summarize_items,
     validate_capture_image_quality,
@@ -108,6 +111,32 @@ def test_erasure_takes_priority_over_multiple_shades():
     assert item["status"] == "invalid"
     assert item["marked_answer"] is None
     assert item["flags"] == ["erasure"]
+
+
+def test_result_overlay_encodes_status_markers_without_changing_sheet_dimensions():
+    predictions = item_predictions(
+        1,
+        [("empty", 0.99), ("shaded", 0.99), ("empty", 0.99), ("empty", 0.99)],
+    )
+    items = decide_items(predictions)
+    overlay = encode_result_overlay(
+        np.full((240, 240, 3), 255, dtype=np.uint8),
+        predictions,
+        items,
+        [{"section": "math", "item_number": 1, "is_correct": True}],
+        {"items": [{"section": "math", "item_number": 1, "correct_answer": "B"}]},
+    )
+
+    assert overlay["format"] == "jpeg"
+    assert overlay["width"] == 240
+    assert overlay["height"] == 240
+    decoded = cv2.imdecode(
+        np.frombuffer(base64.b64decode(overlay["data"]), dtype=np.uint8),
+        cv2.IMREAD_COLOR,
+    )
+    assert decoded is not None
+    assert decoded.shape[:2] == (240, 240)
+    assert int(decoded[133, 160].sum()) < 765
 
 
 def test_production_policy_requires_erasure_probability_threshold():

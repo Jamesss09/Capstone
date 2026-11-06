@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -17,7 +18,7 @@ import { formatApplicantId } from '@/features/scanner/applicantId';
 import { ScannerHeader } from '@/features/scanner/ScannerHeader';
 import { ScannerProgress } from '@/features/scanner/ScannerProgress';
 import { useScannerWorkflow } from '@/features/scanner/ScannerWorkflowContext';
-import { ApiError, apiRequest } from '@/lib/api';
+import { API_URL, ApiError, apiRequest } from '@/lib/api';
 import { colors } from '@/theme/colors';
 
 type SchoolYearFolder = {
@@ -58,6 +59,7 @@ type JobStatusResponse = {
   };
   result: ExaminationResult | null;
   applicant: ResultApplicant;
+  annotated_image_available?: boolean;
 };
 
 type FilingResponse = {
@@ -79,6 +81,14 @@ const MONTHS = [
   'Oct',
   'Nov',
   'Dec',
+] as const;
+
+const OVERLAY_LEGEND = [
+  { label: 'Correct answer', color: '#2DB04B' },
+  { label: 'Wrong answer', color: '#DC463C' },
+  { label: 'Blank', color: '#929292' },
+  { label: 'Multi-shade', color: '#F59E0B' },
+  { label: 'Erasure', color: '#BE50BE' },
 ] as const;
 
 function formatExaminationDate(value?: string | null): string {
@@ -104,7 +114,7 @@ export function ResultScreen() {
   const params = useLocalSearchParams<{ jobId?: string | string[] }>();
   const jobId = Array.isArray(params.jobId) ? params.jobId[0] : params.jobId;
   const { token } = useAuth();
-  const { clearWorkflow } = useScannerWorkflow();
+  const { clearWorkflow, photo } = useScannerWorkflow();
 
   const [result, setResult] = useState<ExaminationResult | null>(null);
   const [applicant, setApplicant] = useState<ResultApplicant | null>(null);
@@ -115,6 +125,9 @@ export function ResultScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [annotatedImageAvailable, setAnnotatedImageAvailable] = useState(true);
+  const [annotatedImageFailed, setAnnotatedImageFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,6 +165,7 @@ export function ResultScreen() {
 
         setResult(jobResponse.result);
         setApplicant(jobResponse.applicant);
+        setAnnotatedImageAvailable(jobResponse.annotated_image_available !== false);
         setFolders(folderList);
 
         if (jobResponse.applicant.filed_at !== null) {
@@ -185,6 +199,16 @@ export function ResultScreen() {
   const isFiled = savedMessage !== null;
   const canSave =
     !isFiled && !isSaving && selectedFolderId !== null && result !== null && folders.length > 0;
+  const annotatedImageUrl = jobId ? `${API_URL}/omr-jobs/${jobId}/annotated-image` : null;
+  const imageSource =
+    !annotatedImageFailed && annotatedImageAvailable && annotatedImageUrl
+      ? {
+          uri: annotatedImageUrl,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      : photo?.uri
+        ? { uri: photo.uri }
+        : null;
 
   async function saveToAdminPortal() {
     if (!token || !result || selectedFolderId === null || isFiled) {
@@ -318,6 +342,22 @@ export function ResultScreen() {
               </View>
             </View>
 
+            <Pressable
+              onPress={() => {
+                setAnnotatedImageFailed(false);
+                setIsViewerVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="View Scanned Sheet"
+              style={({ pressed }) => [
+                styles.viewerButton,
+                pressed && styles.viewerButtonPressed,
+              ]}
+            >
+              <Ionicons name="image-outline" color={colors.navy} size={19} />
+              <Text style={styles.viewerButtonText}>View Scanned Sheet</Text>
+            </Pressable>
+
             <View style={styles.fileDivider}>
               <View style={styles.dividerLine} />
               <Text style={styles.fileDividerText}>SAVE TO ADMIN PORTAL</Text>
@@ -426,6 +466,72 @@ export function ResultScreen() {
           </Pressable>
         )}
       </View>
+
+      <Modal
+        animationType="slide"
+        presentationStyle="fullScreen"
+        visible={isViewerVisible}
+        onRequestClose={() => setIsViewerVisible(false)}
+      >
+        <SafeAreaView style={styles.viewerSafeArea} edges={['top', 'right', 'bottom', 'left']}>
+          <View style={styles.viewerHeader}>
+            <View>
+              <Text style={styles.viewerTitle}>Scanned Sheet</Text>
+              <Text style={styles.viewerSubtitle}>Annotated OMR review</Text>
+            </View>
+            <Pressable
+              onPress={() => setIsViewerVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Close scanned sheet viewer"
+              style={({ pressed }) => [styles.viewerCloseButton, pressed && styles.viewerClosePressed]}
+            >
+              <Ionicons name="close" color={colors.navy} size={24} />
+            </Pressable>
+          </View>
+
+          <ScrollView
+            contentContainerStyle={styles.viewerContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {imageSource ? (
+              <View style={styles.imageFrame}>
+                <Image
+                  source={imageSource}
+                  resizeMode="contain"
+                  style={styles.annotatedImage}
+                  accessibilityLabel="Annotated scanned answer sheet"
+                  onError={() => setAnnotatedImageFailed(true)}
+                />
+              </View>
+            ) : (
+              <View style={styles.imageUnavailableBox}>
+                <Ionicons name="image-outline" color={colors.muted} size={28} />
+                <Text style={styles.imageUnavailableText}>
+                  The scanned sheet image is no longer available.
+                </Text>
+              </View>
+            )}
+
+            {annotatedImageFailed && photo?.uri ? (
+              <Text style={styles.imageFallbackText}>
+                The annotated image is unavailable. Showing the original scan.
+              </Text>
+            ) : null}
+
+            <View style={styles.legendCard}>
+              <Text style={styles.legendTitle}>LEGEND</Text>
+              <View style={styles.legendGrid}>
+                {OVERLAY_LEGEND.map((item) => (
+                  <View key={item.label} style={styles.legendItem}>
+                    <View style={[styles.legendMark, { borderColor: item.color }]} />
+                    <Text style={styles.legendText}>{item.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       <Modal
         animationType="fade"
@@ -598,6 +704,20 @@ const styles = StyleSheet.create({
   statLabel: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   statValue: { color: colors.navy, fontSize: 13, fontWeight: '800' },
   answerKeyValue: { flex: 1, marginLeft: 18, textAlign: 'right' },
+  viewerButton: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    borderWidth: 1,
+    borderColor: colors.navy,
+    borderRadius: 10,
+    marginTop: 17,
+    paddingHorizontal: 14,
+  },
+  viewerButtonPressed: { backgroundColor: colors.input },
+  viewerButtonText: { color: colors.navy, fontSize: 13, fontWeight: '800' },
   fileDivider: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -668,6 +788,82 @@ const styles = StyleSheet.create({
     marginTop: 13,
   },
   errorText: { flex: 1, color: colors.danger, fontSize: 12, lineHeight: 17 },
+  viewerSafeArea: { flex: 1, backgroundColor: colors.input },
+  viewerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
+  },
+  viewerTitle: { color: colors.navy, fontSize: 19, fontWeight: '800' },
+  viewerSubtitle: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  viewerCloseButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 21,
+  },
+  viewerClosePressed: { backgroundColor: colors.input },
+  viewerContent: { padding: 14, paddingBottom: 28 },
+  imageFrame: {
+    minHeight: 470,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: '#E8E8E8',
+    overflow: 'hidden',
+  },
+  annotatedImage: { width: '100%', height: 600 },
+  imageUnavailableBox: {
+    minHeight: 250,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    padding: 24,
+  },
+  imageUnavailableText: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  imageFallbackText: {
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  legendCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    marginTop: 14,
+    padding: 14,
+  },
+  legendTitle: {
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    marginBottom: 11,
+  },
+  legendGrid: { gap: 10 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  legendMark: { width: 18, height: 18, borderWidth: 3, borderRadius: 9 },
+  legendText: { color: colors.navy, fontSize: 12, fontWeight: '600' },
   footer: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,

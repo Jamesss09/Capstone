@@ -13,6 +13,7 @@ class AnswerSheet extends Model
     protected $fillable = [
         'applicant_id',
         'image_path',
+        'annotated_image_path',
         'storage_disk',
         'image_hash',
         'processed_at',

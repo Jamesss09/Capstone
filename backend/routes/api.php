@@ -51,6 +51,7 @@ Route::middleware(['auth:sanctum', 'access.token'])->group(function () {
     // Staff: upload sheet + OMR job queue
     Route::post('sheets/upload', [OmrJobController::class, 'upload'])->middleware('throttle:10,1');
     Route::get('omr-jobs/{job}', [OmrJobController::class, 'status']);
+    Route::get('omr-jobs/{job}/annotated-image', [OmrJobController::class, 'annotatedImage']);
 
     // Staff may file only results they submitted; the controller enforces
     // ownership. Applicant/result administration remains administrator-only.

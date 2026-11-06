@@ -58,6 +58,7 @@ class PruneAnswerSheetImages extends Command
 
                     $sheet->update([
                         'image_path' => null,
+                        'annotated_image_path' => null,
                         'image_hash' => null,
                         'image_deleted_at' => now(),
                     ]);
