@@ -17,7 +17,7 @@
       ],
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
-        "foregroundImage": "./assets/tmc-app-icon.png"
+        "foregroundImage": "./assets/tmc-app-icon-foreground.png"
       }
     },
     "plugins": [

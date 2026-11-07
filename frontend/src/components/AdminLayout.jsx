@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api/client'
 import { applyTheme, getStoredTheme } from '../theme'
-import logo from '../assets/logo-256.png' // TMC seal
+import logo from '../assets/tmc-seal.svg'
 
 // Title + subtitle per page, shown in the top header strip
 const PAGE_META = {
@@ -94,7 +94,7 @@ export default function AdminLayout() {
           <img
             src={logo}
             alt="Trinidad Municipal College seal"
-            className="w-11 h-11 rounded-full object-contain bg-[#EDC31D]"
+            className="w-11 h-11 rounded-full object-contain"
           />
           <div className="leading-tight">
             <p className="text-[#EDC31D] font-bold text-sm">TMC Entrance Exam</p>

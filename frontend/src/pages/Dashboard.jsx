@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import logo from '../assets/logo-256.png' // TMC seal
+import logo from '../assets/tmc-seal.svg'
 import { FeedRowSkeleton, StatCardSkeleton, TableSkeleton } from '../components/Skeleton'
 
 /** How often the live System Activity feed re-fetches */
@@ -129,11 +129,11 @@ function StatCard({ icon: Icon, label, value }) {
 function CollegeCard() {
   return (
     <div className="flex items-center gap-4 rounded-xl bg-[var(--panel)] border border-[var(--line)] px-5 py-5">
-      <div className="w-12 h-12 rounded-full bg-[#EDC31D] flex items-center justify-center shrink-0">
+      <div className="w-12 h-12 flex items-center justify-center shrink-0">
         <img
           src={logo}
           alt="Trinidad Municipal College seal"
-          className="w-10 h-10 object-contain"
+          className="w-12 h-12 object-contain"
         />
       </div>
       <p className="text-sm font-bold text-[var(--ink)] leading-snug tracking-wide">

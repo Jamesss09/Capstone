@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">Trinidad Municipal College seal</title>
+  <desc id="description">A centered navy and gold academic seal featuring the college name, a flame, an open book with the TMC monogram, the motto A Tradition of Excellence, laurel branches, the year 1985, and Trinidad, Bohol.</desc>
+
+  <defs>
+    <path id="college-arc" d="M146 530A366 366 0 0 1 878 530"/>
+    <path id="motto-arc" d="M357 708Q512 790 667 708"/>
+
+    <!-- Split wheat grain from the source: rounded base with two pointed tips. -->
+    <path id="wheat-grain" d="M0 0C15-17 39-17 52-8L31 0L52 10C36 24 14 19 0 0Z"/>
+
+    <g id="left-wheat">
+      <!-- Five separate, tapered-looking stalks fan downward as in the original. -->
+      <g fill="none" stroke="#F3B91E" stroke-linecap="round">
+        <path d="M168 613C176 655 195 704 225 739" stroke-width="4"/>
+        <path d="M184 635C193 672 211 708 237 738" stroke-width="5"/>
+        <path d="M195 586C200 632 215 682 239 722" stroke-width="6"/>
+        <path d="M215 625C220 662 232 698 251 727" stroke-width="5"/>
+        <path d="M231 648C235 677 245 704 260 724" stroke-width="4"/>
+      </g>
+
+      <!-- Six split grains: three upright and three horizontal, alternating downward. -->
+      <g fill="#F3B91E">
+        <use xlink:href="#wheat-grain" transform="translate(274 704) rotate(90) scale(.96 .94)"/>
+        <use xlink:href="#wheat-grain" transform="translate(210 756) rotate(2) scale(1.08 1.02)"/>
+        <use xlink:href="#wheat-grain" transform="translate(306 731) rotate(72) scale(1.18 1.08)"/>
+        <use xlink:href="#wheat-grain" transform="translate(245 800) rotate(1) scale(1.48 1.08)"/>
+        <use xlink:href="#wheat-grain" transform="translate(352 758) rotate(60) scale(1.18 1.10)"/>
+        <use xlink:href="#wheat-grain" transform="translate(309 837) rotate(0) scale(1.66 1.10)"/>
+      </g>
+    </g>
+  </defs>
+
+  <!-- Concentric seal: every major element is aligned to x=512. -->
+  <circle cx="512" cy="512" r="496" fill="#123B61"/>
+  <circle cx="512" cy="512" r="466" fill="none" stroke="#FFFFFF" stroke-width="10"/>
+
+  <!-- College name -->
+  <text fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="400" letter-spacing="1.25">
+    <textPath xlink:href="#college-arc" startOffset="50%" text-anchor="middle">TRINIDAD MUNICIPAL COLLEGE</textPath>
+  </text>
+
+  <!-- Flame of knowledge -->
+  <path fill="#F3B91E" transform="translate(0 347) scale(1 .93) translate(0 -347)" d="M512 347c-35 0-60-24-60-61 0-25 12-45 21-64 8-18 9-36 3-54 28 18 40 42 36 73 12-18 25-31 42-42-5 21 1 38 11 56 9 16 15 34 13 51-4 27-25 41-66 41Z"/>
+
+  <!-- Open book -->
+  <path d="M512 398C458 364 402 386 293 368v280c79 34 146-8 219 32 73-40 140 2 219-32V368c-109 18-165-4-219 30Z" fill="#FFFFFF" stroke="#D19A18" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M512 398C458 364 402 386 293 368v280c79 34 146-8 219 32 73-40 140 2 219-32V368c-109 18-165-4-219 30Z" fill="none" stroke="#123B61" stroke-width="5" stroke-linejoin="round"/>
+
+  <!-- Balanced TMC monogram. T and C share a baseline; the stylized M forms three academic pillars. -->
+  <g fill="#C9971B">
+    <!-- M cap and crossbar -->
+    <path d="M421 424h182l-15 25H436Z"/>
+    <path d="M449 459h126v23H449Z"/>
+
+    <!-- T -->
+    <path d="M344 491h98v23h-35v108l-14 10-14-10V514h-35Z"/>
+
+    <!-- Three-part stylized M -->
+    <path d="M459 482h29l8 122-19 12-11-12Z"/>
+    <path d="M499 482h26v133l-13 8-13-8Z"/>
+    <path d="M536 482h29l-7 122-11 12-19-12Z"/>
+
+    <!-- C -->
+    <path d="M614 491h48l17 16-6 29h-26v-18h-25l-10 10v67l10 10h25v-20h28v31l-16 16h-45l-31-29v-83Z"/>
+  </g>
+
+  <!-- Motto -->
+  <text fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="29" font-style="italic" letter-spacing=".2">
+    <textPath xlink:href="#motto-arc" startOffset="50%" text-anchor="middle">A Tradition of Excellence</textPath>
+  </text>
+
+  <!-- Source-faithful wheat ornaments, mirrored for clean alignment. -->
+  <use xlink:href="#left-wheat"/>
+  <use xlink:href="#left-wheat" transform="translate(1024 0) scale(-1 1)"/>
+
+  <!-- Foundation year and location -->
+  <text x="512" y="875" fill="#E5AF26" font-family="Georgia, 'Times New Roman', serif" font-size="60" font-weight="400" text-anchor="middle" letter-spacing="2">1985</text>
+  <text x="512" y="918" fill="#E5AF26" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="400" text-anchor="middle" letter-spacing=".4">Trinidad, Bohol</text>
+</svg>
